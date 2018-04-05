@@ -1,0 +1,104 @@
+.myContainer{
+    position: absolute;
+    margin-left:8%;
+    margin-right: 8%;
+    width: 80%;
+}
+
+.myContainerHeading{
+    text-align: left;
+    color: rgb(7, 119, 189);
+    /* margin-top: 4%; */
+}
+
+
+   .form-group .public-DraftEditor-content {
+    min-height: 110px;
+}
+
+/* The container */
+.radiocontainer {
+    display: block;
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    margin-top: 29px;
+    cursor: pointer;
+    font-size: 12px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.radiocontainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+
+}
+
+/* Create a custom radio button */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: #eee;
+    border-radius: 50%;
+    border: 1px solid grey;
+    padding-left: 10px;
+}
+
+/* On mouse-over, add a grey background color */
+.radiocontainer:hover input ~ .checkmark {
+    background-color: #ccc;
+    border: 1px solid grey;
+}
+
+/* When the radio button is checked, add a blue background */
+.radiocontainer input:checked ~ .checkmark {
+    /* background-color: rgb(202, 7, 121); */
+    background-color:white;
+    border: 2px solid rgb(7, 119, 189);
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    background-color:white;
+    border: 1px rgb(7, 119, 189);
+}
+
+/* Show the indicator (dot/circle) when checked */
+.radiocontainer input:checked ~ .checkmark:after {
+    display: block;
+    background-color:rgb(7, 119, 189);
+}
+
+/* Style the indicator (dot/circle) */
+.radiocontainer .checkmark:after {
+ 	top: 2px;
+	left: 2px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+    background: white;
+}
+
+.radiolabel{
+    font-size: 14px;
+}
+
+
+.actionLayout{
+    /* max-width: 320px; */
+    /* padding: 30px 38px 66px; */
+    margin: 0 auto;
+    border: 1px solid #cccccc;
+  }
+  

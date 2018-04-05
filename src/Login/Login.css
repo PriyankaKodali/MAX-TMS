@@ -1,0 +1,56 @@
+.wrapper{
+    margin-top: 65px;
+}
+
+.form-signin{
+  max-width: 320px;
+  padding: 30px 38px 66px;
+  margin: 0 auto;
+  border: 1px solid #cccccc;
+  margin-top: 10%;
+}
+
+.usrName{
+    height: 40px;
+}
+
+.btn-block{
+    border-radius: 1px;
+    margin-top: 25px;
+    border: none;
+    height: 33px;
+}
+
+.bol{
+    position: relative;
+    margin-top: -40px;
+    color: #60B99A;
+}
+
+.input-group-addon { 
+    position: relative; 
+}
+
+.input-group-addon .fa {
+  position: absolute;
+  padding: 10px;
+  pointer-events: none;
+}
+
+.logo{
+    max-width: 73px;
+    height: 45px;
+}
+
+.submitbtn{
+        margin-left: 38%;
+    margin-top: 5%;
+}
+
+.forgetPwdForm{
+    max-width: 378px;
+    padding: 34px 25px 21px;
+    margin: 0 auto;
+    border: 1px solid #cccccc;
+    margin-top: 10%;
+}
