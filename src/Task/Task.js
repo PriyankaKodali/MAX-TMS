@@ -5,13 +5,19 @@ import RichTextEditor from 'react-rte';
 import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
 import $ from 'jquery';
 import { ApiUrl } from '.././Config.js';
-import {toast} from 'react-toastify';
-import {MyAjaxForAttachments} from '../MyAjax.js';
+import { toast } from 'react-toastify';
+import { MyAjaxForAttachments } from '../MyAjax.js';
+import { EditorState, convertToRaw, ContentState } from 'draft-js';
+import draftToHtml from 'draftjs-to-html';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-import FroalaEditor from 'react-froala-wysiwyg';
+//import FroalaEditor from 'react-froala-wysiwyg';
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
+
+
 
 class Task extends Component {
 
@@ -22,10 +28,10 @@ class Task extends Component {
         }
         this.state = {
             Categories: [], Category: null, SubCategories: [], SubCategory: null,
-            taskDescription: RichTextEditor.createEmptyValue(), taskDescriptionHtml: "",
+            // taskDescription: RichTextEditor.createEmptyValue(), taskDescriptionHtml: "",
             client: true, inOffc: false, typeOfTaskSelected: false, Client: null, Clients: [],
-            Department: null, Departments: [], FroalaConfig: froalaConfig,
-
+            Department: null, Departments: [], FroalaConfig: froalaConfig, Assignees: [],
+            Assignee: null, Description: EditorState.createEmpty(), DescriptionHtml: ""
         }
     }
 
@@ -49,14 +55,13 @@ class Task extends Component {
         $.ajax({
             url: ApiUrl + "/api/MasterData/GetClients?OrgId=" + sessionStorage.getItem("OrgId"),
             type: "get",
-            success: (data) => { this.setState({ Clients: data["clientsclients"] }) }
+            success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
         $.ajax({
-            url: ApiUrl + "/api/MasterDate/GetEmployees?OrgId=" + sessionStorage.getItem("OrgId"),
+            url: ApiUrl + "/api/MasterData/GetEmp?OrgId=" + sessionStorage.getItem("OrgId"),
             type: "get",
-            success:(data) =>{ this.setState({Employees: data["employees"]})} 
+            success: (data) => { this.setState({ Assignees: data["employees"] }) }
         })
-
     }
 
     componentDidMount() {
@@ -84,19 +89,6 @@ class Task extends Component {
                 this.uploadFile(files)
 
             }.bind(this))
-
-
-        $("#froala-editor").froalaEditor({
-            fontFamily: {
-                "Roboto,sans-serif": 'Roboto',
-                "Oswald,sans-serif": 'Oswald',
-                "Montserrat,sans-serif": 'Montserrat',
-                "'Open Sans Condensed',sans-serif": 'Open Sans Condensed'
-            },
-            fontFamilySelection: true
-        });
-
-
     }
 
 
@@ -161,7 +153,7 @@ class Task extends Component {
                                             <span className="glyphicon glyphicon-user"></span>
                                         </span>
                                         <Select className="form-control" name="priority" ref="priority" placeholder="Priority" value={this.state.Priority} onChange={this.PriorityChanged.bind(this)}
-                                            options={[{ value: "1", label: "High" }, { value: "2", label: "Medium" }, { value: "3", label: "Low" }]}
+                                            options={[{ value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }]}
                                         />
                                     </div>
                                 </div>
@@ -174,7 +166,7 @@ class Task extends Component {
                                         <span className="input-group-addon">
                                             <span className="glyphicon glyphicon-user"></span>
                                         </span>
-                                        <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.assignedTo} options={this.state.Assignees} onChange={this.AssignedToChanged.bind(this)} />
+                                        <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.Assignee} options={this.state.Assignees} onChange={this.AssigneeChanged.bind(this)} />
                                     </div>
                                 </div>
                             </div>
@@ -236,9 +228,17 @@ class Task extends Component {
                                 <div className="col-xs-12 actionLayout" >
                                     <div className="col-xs-12" style={{ paddingTop: '12px' }}>
                                         <label> Action  </label>
-                                        <div className="form-group">
-                                            <FroalaEditor className="form-control" name="Description" ref="action" id="froala-editor" model={this.state.model} config={this.state.FroalaConfig} />
+
+                                        <div className="form-group" style={{ height: "auto" }}>
+                                            <Editor name="message" id="message" key="message" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
+                                            <input hidden ref="message" name="forErrorShowing" />
                                         </div>
+
+
+                                        {/* <div className="form-group">
+                                            <FroalaEditor  id="froala-editor" tag="textarea" name="Description" ref="action" model={this.state.model} config={this.state.FroalaConfig} onModelChange={this.handleModelChange.bind(this)}  />
+                                         <input id= "jkl" type="hidden" value={this.state.model} />
+                                        </div> */}
                                     </div>
 
                                     <div className="col-xs-12">
@@ -262,6 +262,42 @@ class Task extends Component {
             </div>
         )
     }
+
+    uploadCallback(file) {
+        var formData = new FormData();
+        formData.append("file", file);
+
+        var url = ApiUrl + "/api/Activities/UploadImage"
+        return new Promise(
+            (resolve, reject) => {
+                MyAjaxForAttachments(
+                    url,
+                    (data1) => {
+                        resolve({ data: { link: data1["link"] } });
+                    },
+                    (error) => {
+                        toast(error.responseText, {
+                            type: toast.TYPE.ERROR
+                        });
+                        reject(error.responseText);
+                    },
+                    "POST", formData
+                );
+            });
+    }
+
+    messageBoxChange(val) {
+        this.setState({ Description: val, DescriptionHtml: draftToHtml(convertToRaw(val.getCurrentContent())) });
+    }
+
+
+    // handleModelChange(model) {
+    //     this.setState({ model: model }, ()=>{
+    //         console.log(this.state.model);  
+    //     })
+
+    //   $("froala-editor").editable('getText')
+    // }
 
     clientClicked() {
         this.setState({ client: true, inOffc: false })
@@ -296,7 +332,7 @@ class Task extends Component {
     CategoryChanged(val) {
         if (val) {
             this.setState({ Category: val })
-            showErrorsForInput(this.refs.Category.wrapper, null);
+            showErrorsForInput(this.refs.category.wrapper, null);
         }
         else {
             this.setState({ Category: '' })
@@ -307,7 +343,7 @@ class Task extends Component {
     SubCategoryChanged(val) {
         if (val) {
             this.setState({ SubCategory: val })
-            showErrorsForInput(this.refs.SubCategory.wrapper, null);
+            showErrorsForInput(this.refs.subcategory.wrapper, null);
         }
         else {
             this.setState({ SubCategory: '' })
@@ -315,14 +351,14 @@ class Task extends Component {
         }
     }
 
-    AssignedToChanged(val) {
+    AssigneeChanged(val) {
         if (val) {
-            this.setState({ AssignedTo: val })
-            showErrorsForInput(this.refs.assignee.wrapper, null);
+            this.setState({ Assignee: val })
+            showErrorsForInput(this.refs.client.wrapper, null);
         }
         else {
-            this.setState({ AssignedTo: '' })
-            showErrorsForInput(this.refs.assignee.wrapper, ["Please select Assignee"]);
+            this.setState({ Assignee: '' })
+            showErrorsForInput(this.refs.client.wrapper, ["Please select client"]);
         }
     }
 
@@ -337,16 +373,12 @@ class Task extends Component {
         }
     }
 
-    // taskDescriptionChanged(val) {
-    //     this.setState({ taskDescription: val, taskDescriptionHtml: val.toString('html') })
-    // }
-
     handleSubmit(e) {
         e.preventDefault();
 
-         
-       
-      
+
+        //     var x= JSON.stringify(this.state.model)
+        //    console.log(x);
 
         $(".loaderActivity").show();
         $("button[name='submit']").hide();
@@ -360,33 +392,36 @@ class Task extends Component {
 
         var data = new FormData();
 
-        data.append("taskName", this.refs.subject.value);
-        data.append("description", this.state.model);
-        data.append("categoryId", this.state.Category);
-        data.append("subCategoryId", this.state.SubCategory);
+        data.append("task", this.refs.subject.value);
+        //data.append("description", this.state.model);
 
-        if (this.state.Client == true) {
-            data.append("client", this.state.Client);
+        data.append("description", this.state.DescriptionHtml);
+        data.append("categoryId", this.state.Category.value);
+        data.append("subCategoryId", this.state.SubCategory.value);
+        data.append("edoc", this.refs.edoc.value);
+        data.append("priority", this.state.Priority.value);
+        data.append("assignedTo", this.state.Assignee.value);
+
+        if (this.state.client === true) {
+            data.append("clientId", this.state.Client.value);
         }
 
-        if (this.state.inOffc == true) {
-            data.append("departmentId", this.state.Department);
+        if (this.state.inOffc === true) {
+            data.append("departmentId", this.state.Department.value);
         }
 
-        data.append("assignedTo", this.state.assignedTo);
 
-         // Gets the list of file selected for upload
+
+        // Gets the list of file selected for upload
         var files = $("#input-id").fileinput("getFileStack");
 
-         for (var i = 0; i < files.length; i++) {
+        for (var i = 0; i < files.length; i++) {
             if (files[i] != undefined) {
                 data.append(files[i].filename, files[i]);
             }
         }
 
-        data.append("EDOC", this.refs.edoc.value);
-
-        let url= ApiUrl + "/api/Activity/AddActivity"
+        let url = ApiUrl + "/api/Activities/AddActivity"
 
         try {
 
@@ -397,7 +432,7 @@ class Task extends Component {
                         type: toast.TYPE.SUCCESS
                     });
                     $("button[name='submit']").show();
-                  //  this.props.history.push("/EmployeesList");
+                    //  this.props.history.push("/EmployeesList");
                     return true;
                 },
                 (error) => {
@@ -443,7 +478,7 @@ class Task extends Component {
             showErrorsForInput(this.refs.priority.wrapper, ["Please select priority"]);
         }
 
-        if (!this.state.AssignedTo || !this.state.AssignedTo.value) {
+        if (!this.state.Assignee || !this.state.Assignee.value) {
             success = false;
             showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
         }

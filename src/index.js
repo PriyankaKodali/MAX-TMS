@@ -14,7 +14,7 @@ import $ from 'jquery';
 import Task from './Task/Task';
 import TaskDashBoard from './TaskDashBoard/TaskDashBoard';
 import ViewTask from './ViewTask/ViewTask';
-
+import Login from './Login/Login';
 
 import 'froala-editor/js/froala_editor.pkgd.min.js';
 
@@ -22,7 +22,6 @@ import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput/js/plugins/purify.min.js';
 import 'bootstrap-fileinput/js/fileinput.js';
 import 'bootstrap-fileinput/themes/explorer/theme.js';
-
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
@@ -32,7 +31,8 @@ ReactDOM.render((
         <div>
             <ToastContainer autoClose={3000} position="top-center" />
             <App>
-                <Route exact path="/" component={Task} />
+                <Route exact path="/" component={Login} />
+                <Route exact path="/Login" component={Login} />
                 <Route exact path="/Task" component={Task} />
                 <Route exact path="/TaskDashBoard" component={TaskDashBoard} />
                 <Route exact path="/ViewTask" component={ViewTask} />

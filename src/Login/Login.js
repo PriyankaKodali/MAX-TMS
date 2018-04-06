@@ -10,8 +10,7 @@ class Login extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { error
-            : "" };
+        this.state = { error : "" }
     }
 
 
@@ -86,14 +85,14 @@ class Login extends Component {
                     sessionStorage.setItem("OrgId", data["OrgId"]);
                     sessionStorage.setItem("OrgName", data["OrgName"]);
 
-                    if (data["roles"].indexOf("Coordinator") != -1 || data["roles"].indexOf("Manager") != -1 || data["roles"].indexOf("Admin") != -1) {
-                        this.props.history.push("/EmployeesList");
+                    if (data["roles"].indexOf("Admin") != -1 ) {
+                        this.props.history.push("/Task");
                         return;
                     }
-                    else {
-                        this.props.history.push("/Login");
-                        return;
-                    }
+                    // else {
+                    //     this.props.history.push("/Login");
+                    //     return;
+                    // }
                 }
             ).fail(
                 (error) => {
