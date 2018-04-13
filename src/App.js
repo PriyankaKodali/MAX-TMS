@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router';
 
 
 class App extends Component {
@@ -19,7 +20,7 @@ class App extends Component {
         return (
             <div >
                 {
-                    window.isLoggedIn && roles.indexOf("Admin") != -1 ?
+                    window.isLoggedIn ?
                         <div>
                             <div className="my-nav-bar" style={{ zIndex: '1000', fontSize: '17px' }}>
                                 <div className="container-fluid">
@@ -40,7 +41,7 @@ class App extends Component {
 
                                         <ul className="nav navbar-nav navbar-right">
                                             <li className="dropdown">
-                                                <Link className="dropdown-toggle" to="../Task"> Add Task </Link>
+                                                <Link className="dropdown-toggle" to="../Task"> Create Task </Link>
                                             </li>
                                         </ul>
 
@@ -50,11 +51,11 @@ class App extends Component {
                                             </li>
                                         </ul>
 
-                                        <ul className="nav navbar-nav navbar-right">
+                                        {/* <ul className="nav navbar-nav navbar-right">
                                             <li className="dropdown">
                                                 <Link className="dropdown-toggle" to="../ViewTask">  View Task </Link>
                                             </li>
-                                        </ul>
+                                        </ul> */}
 
                                     </div>
                                 </div>
@@ -70,4 +71,4 @@ class App extends Component {
     }
 }
 
-export default App;
+export default withRouter(App);

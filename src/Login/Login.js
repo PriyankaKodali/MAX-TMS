@@ -84,15 +84,16 @@ class Login extends Component {
                     sessionStorage.setItem("userName", data["userName"]);
                     sessionStorage.setItem("OrgId", data["OrgId"]);
                     sessionStorage.setItem("OrgName", data["OrgName"]);
+                    sessionStorage.setItem("EmpId", data["EmpId"]);
 
                     if (data["roles"].indexOf("Admin") != -1 ) {
-                        this.props.history.push("/Task");
+                        this.props.history.push("/TaskDashBoard");
                         return;
                     }
-                    // else {
-                    //     this.props.history.push("/Login");
-                    //     return;
-                    // }
+                    else {
+                        this.props.history.push("/TaskDashBoard");
+                        return;
+                    }
                 }
             ).fail(
                 (error) => {

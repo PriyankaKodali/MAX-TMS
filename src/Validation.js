@@ -3,9 +3,21 @@ import $ from 'jquery';
 
 var constraints = {
     Subject:{
-        presence:true
+           presence: true
     },
     Description:{
+        presence: true
+    },
+    DOC:{
+        presence: true
+    },
+    DOS:{
+        presence: true
+    },
+    BudgetedHours:{
+        presence: true
+    },
+    HoursWorked:{
         presence: true
     }
   

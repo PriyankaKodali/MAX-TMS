@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './Task.css';
 import Select from 'react-select';
-import RichTextEditor from 'react-rte';
+//import RichTextEditor from 'react-rte';
 import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
 import $ from 'jquery';
 import { ApiUrl } from '.././Config.js';
@@ -14,6 +14,8 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
 //import FroalaEditor from 'react-froala-wysiwyg';
 
+var moment = require('moment');
+
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
 
@@ -23,15 +25,19 @@ class Task extends Component {
 
     constructor(props) {
         super(props);
+
         var froalaConfig = {
             heightMin: 210
         }
+
         this.state = {
             Categories: [], Category: null, SubCategories: [], SubCategory: null,
-            // taskDescription: RichTextEditor.createEmptyValue(), taskDescriptionHtml: "",
-            client: true, inOffc: false, typeOfTaskSelected: false, Client: null, Clients: [],
+            client: false, inOffc: true, typeOfTaskSelected: false, Client: null, Clients: [],
             Department: null, Departments: [], FroalaConfig: froalaConfig, Assignees: [],
-            Assignee: null, Description: EditorState.createEmpty(), DescriptionHtml: ""
+            Assignee: null, Description: EditorState.createEmpty(), DescriptionHtml: "",
+            Doc: moment().format("MM-DD-YYYY")
+
+            // taskDescription: RichTextEditor.createEmptyValue(), taskDescriptionHtml: "",
         }
     }
 
@@ -52,16 +58,30 @@ class Task extends Component {
             type: "get",
             success: (data) => { this.setState({ Departments: data["departments"] }) }
         })
+
         $.ajax({
-            url: ApiUrl + "/api/MasterData/GetClients?OrgId=" + sessionStorage.getItem("OrgId"),
+            url: ApiUrl + "/api/MasterData/GetAllClients",
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
-        })
-        $.ajax({
-            url: ApiUrl + "/api/MasterData/GetEmp?OrgId=" + sessionStorage.getItem("OrgId"),
-            type: "get",
-            success: (data) => { this.setState({ Assignees: data["employees"] }) }
-        })
+        }),
+
+            $.ajax({
+                url: ApiUrl + "/api/MasterData/GetEmployees",
+                type: "get",
+                success: (data) => { this.setState({ Assignees: data["employees"] }) }
+            })
+
+        // $.ajax({
+        //     url: ApiUrl + "/api/MasterData/GetClients?OrgId=" + sessionStorage.getItem("OrgId"),
+        //     type: "get",
+        //     success: (data) => { this.setState({ Clients: data["clients"] }) }
+        // })
+
+        // $.ajax({
+        //     url: ApiUrl + "/api/MasterData/GetEmp?OrgId=" + sessionStorage.getItem("OrgId"),
+        //     type: "get",
+        //     success: (data) => { this.setState({ Assignees: data["employees"] }) }
+        // })
     }
 
     componentDidMount() {
@@ -99,50 +119,56 @@ class Task extends Component {
 
                     <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)} >
                         <div className="col-xs-12">
-                            <div className="col-xs-3">
-                                <div className="col-xs-2">
-                                    <label className="col-xs-2 radiocontainer" >
-                                        <label className="radiolabel">  Client </label>
-                                        <input type="radio" name="taskfrom" className="fileChecked" checked={this.state.client} onClick={this.clientClicked.bind(this)} />
+                            <div className="col-xs-3 form-group">
+
+                                <div className="col-xs-2 form-group" >
+                                    <label className="radiocontainer" >
+                                        <label className="radiolabel"> Office</label>
+                                        <input type="radio" name="taskfrom" className="form-control folderChecked" checked={this.state.inOffc} onClick={this.inOfficeClicked.bind(this)} />
                                         <span className="checkmark"></span>
                                     </label>
                                 </div>
-                                <div className="col-xs-2" style={{ marginLeft: '14%' }}>
-                                    <label className="radiocontainer" >
-                                        <label className="radiolabel"> Office</label>
-                                        <input type="radio" name="taskfrom" className="folderChecked" checked={this.state.inOffc} onClick={this.inOfficeClicked.bind(this)} />
+                                <div className="col-xs-2 form-group" style={{ marginLeft: '14%' }}>
+                                    <label className="col-xs-2 radiocontainer" >
+                                        <label className="radiolabel">  Client </label>
+                                        <input type="radio" name="taskfrom" className="form-control fileChecked form-control" checked={this.state.client} onClick={this.clientClicked.bind(this)} />
                                         <span className="checkmark"></span>
                                     </label>
                                 </div>
                             </div>
                             {
-                                this.state.client ?
+                                this.state.client === true ?
+
 
                                     <div className="col-xs-3">
-                                        <label>Client Name </label>
+                                        <label> Client</label>
                                         <div className="form-group">
                                             <div className="input-group">
-                                                <span className="input-group-addon" >
+                                                <span className="input-group-addon">
                                                     <span className="glyphicon glyphicon-user"></span>
                                                 </span>
-                                                <Select className="form-control" name="client" ref="client" placeholder="Select Client" value={this.state.Client} options={this.state.Clients} onChange={this.ClientChanged.bind(this)} />
+                                                <Select className="form-control" name="client" ref="clientName" placeholder="Select Client" value={this.state.Client} options={this.state.Clients} onChange={this.ClientChanged.bind(this)} />
                                             </div>
                                         </div>
                                     </div>
 
                                     :
 
-                                    <div className="col-xs-3">
-                                        <label>Department </label>
-                                        <div className="form-group">
-                                            <div className="input-group">
-                                                <span className="input-group-addon" >
-                                                    <span className="glyphicon glyphicon-user"></span>
-                                                </span>
-                                                <Select className="form-control" name="Department" ref="department" placeholder="Select Departmnet" value={this.state.Department} options={this.state.Departments} onChange={this.DepartmentChanged.bind(this)} />
+                                    this.state.inOffc === true ?
+
+                                        <div className="col-xs-3">
+                                            <label>Department </label>
+                                            <div className="form-group">
+                                                <div className="input-group">
+                                                    <span className="input-group-addon" >
+                                                        <span className="glyphicon glyphicon-user"></span>
+                                                    </span>
+                                                    <Select className="form-control" name="Department" ref="departmentName" placeholder="Select Departmnet" value={this.state.Department} options={this.state.Departments} onChange={this.DepartmentChanged.bind(this)} />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                        :
+                                        <div />
                             }
 
                             <div className="col-xs-3">
@@ -197,6 +223,7 @@ class Task extends Component {
                                         </div>
                                     </div>
                                 </div>
+
                                 <div className="col-md-3">
                                     <label>Expected Date of Closer </label>
                                     <div className="form-group">
@@ -204,43 +231,37 @@ class Task extends Component {
                                             <span className="input-group-addon">
                                                 <span className="glyphicon glyphicon-calendar"></span>
                                             </span>
-                                            <input className="col-md-3 form-control" style={{ lineHeight: '19px' }} type="date" name="DOC" ref="edoc" autoComplete="off" />
+                                            <input className="form-control" style={{ lineHeight: '19px' }} type="date" name="DOC" ref="edoc" autoComplete="off" min={moment().format("YYYY-MM-DD")} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div className="col-xs-12">
+                                <div className="col-xs-12">
+                                    <label>Subject</label>
+                                    <div className="form-group">
+                                        <div className="input-group">
+                                            <span className="input-group-addon">
+                                                <span className="glyphicon glyphicon-user" ></span>
+                                            </span>
+                                            <input className="form-control" name="Subject" type="text" placeholder="Subject" autoComplete="off" ref="subject" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="col-xs-12">
-                                <div className="col-xs-12">
-                                    <label> Subject</label>
-                                    <div className="form-group">
-                                        <div className="input-group">
-                                            <span className="input-group-addon">
-                                                <span className="glyphicon glyphicon-user"></span>
-                                            </span>
-                                            <input className="form-control" type="text" placeholder="Subject" ref="subject" name="Subject" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <div className="col-xs-12 ">
                                 <h4 className="heading"> Action </h4>
                                 <div className="col-xs-12 actionLayout" >
                                     <div className="col-xs-12" style={{ paddingTop: '12px' }}>
                                         <label> Action  </label>
-
                                         <div className="form-group" style={{ height: "auto" }}>
-                                            <Editor name="message" id="message" key="message" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
-                                            <input hidden ref="message" name="forErrorShowing" />
+                                            <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
+                                            <input hidden ref="actionResponse" name="forErrorShowing" />
                                         </div>
-
-
-                                        {/* <div className="form-group">
-                                            <FroalaEditor  id="froala-editor" tag="textarea" name="Description" ref="action" model={this.state.model} config={this.state.FroalaConfig} onModelChange={this.handleModelChange.bind(this)}  />
-                                         <input id= "jkl" type="hidden" value={this.state.model} />
-                                        </div> */}
                                     </div>
-
                                     <div className="col-xs-12">
                                         <div className="form-group">
                                             <input className="file" name="file[]" id="input-id" type="file" ref="Upldfiles" data-preview-file-type="any" showUpload="false" multiple />
@@ -288,6 +309,7 @@ class Task extends Component {
 
     messageBoxChange(val) {
         this.setState({ Description: val, DescriptionHtml: draftToHtml(convertToRaw(val.getCurrentContent())) });
+        showErrorsForInput(this.refs.actionResponse, []);
     }
 
 
@@ -310,22 +332,22 @@ class Task extends Component {
     ClientChanged(val) {
         if (val) {
             this.setState({ Client: val })
-            showErrorsForInput(this.refs.client.wrapper, null);
+            showErrorsForInput(this.refs.clientName.wrapper, null);
         }
         else {
             this.setState({ Client: '' })
-            showErrorsForInput(this.refs.client.wrapper, ["Please select client"]);
+            showErrorsForInput(this.refs.clientName.wrapper, ["Please select client"]);
         }
     }
 
     DepartmentChanged(val) {
         if (val) {
             this.setState({ Department: val })
-            showErrorsForInput(this.refs.department.wrapper, null);
+            showErrorsForInput(this.refs.departmentName.wrapper, null);
         }
         else {
             this.setState({ Department: '' })
-            showErrorsForInput(this.refs.department.wrapper, ["Please select department"]);
+            showErrorsForInput(this.refs.departmentName.wrapper, ["Please select department"]);
         }
     }
 
@@ -354,11 +376,11 @@ class Task extends Component {
     AssigneeChanged(val) {
         if (val) {
             this.setState({ Assignee: val })
-            showErrorsForInput(this.refs.client.wrapper, null);
+            showErrorsForInput(this.refs.assignee.wrapper, null);
         }
         else {
             this.setState({ Assignee: '' })
-            showErrorsForInput(this.refs.client.wrapper, ["Please select client"]);
+            showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
         }
     }
 
@@ -376,12 +398,9 @@ class Task extends Component {
     handleSubmit(e) {
         e.preventDefault();
 
-
-        //     var x= JSON.stringify(this.state.model)
-        //    console.log(x);
-
         $(".loaderActivity").show();
         $("button[name='submit']").hide();
+
 
         if (!this.validate(e)) {
 
@@ -401,16 +420,17 @@ class Task extends Component {
         data.append("edoc", this.refs.edoc.value);
         data.append("priority", this.state.Priority.value);
         data.append("assignedTo", this.state.Assignee.value);
+        data.append("OrgId", sessionStorage.getItem("OrgId"));
 
         if (this.state.client === true) {
+            data.append("taskType", "Client");
             data.append("clientId", this.state.Client.value);
         }
 
         if (this.state.inOffc === true) {
+            data.append("taskType", "Office");
             data.append("departmentId", this.state.Department.value);
         }
-
-
 
         // Gets the list of file selected for upload
         var files = $("#input-id").fileinput("getFileStack");
@@ -432,7 +452,7 @@ class Task extends Component {
                         type: toast.TYPE.SUCCESS
                     });
                     $("button[name='submit']").show();
-                    //  this.props.history.push("/EmployeesList");
+                    this.props.history.push("/TaskDashBoard");
                     return true;
                 },
                 (error) => {
@@ -461,7 +481,22 @@ class Task extends Component {
 
     validate(e) {
 
+        let errors = {};
         var success = ValidateForm(e);
+
+        if (this.state.client) {
+            if (!this.state.Client || !this.state.Client.value) {
+                success = false;
+                showErrorsForInput(this.refs.clientName.wrapper, ["Please select client"]);
+            }
+        }
+
+        if (this.state.inOffc) {
+            if (!this.state.Department || !this.state.Department.value) {
+                success = false;
+                showErrorsForInput(this.refs.departmentName.wrapper, ["Please select department"]);
+            }
+        }
 
         if (!this.state.Category || !this.state.Category.value) {
             success = false;
@@ -483,26 +518,38 @@ class Task extends Component {
             showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
         }
 
-        if (this.state.client == true) {
-            if (!this.state.Client || !this.state.Client.value) {
-                success = false;
-                showErrorsForInput(this.refs.client.wrapper, ["Please select client"]);
-            }
+        if (!this.state.Description.getCurrentContent().hasText()) {
+            showErrorsForInput(this.refs.actionResponse, ["Please enter action description"]);
+            success = false;
+        }
+        else {
+            showErrorsForInput(this.refs.actionResponse, []);
         }
 
-        if (this.state.inOffc) {
-            if (!this.state.Department || !this.state.Department.value) {
-                success = false;
-                showErrorsForInput(this.refs.department.wrapper, ["Please select department"]);
-            }
-        }
+
         return success;
     }
 }
 
 export default Task;
 
-// if(files.length>0)
-// {
-//     data.append("attachments", )
-// } 
+
+
+
+
+{/* <div className="col-xs-12">
+    <label> Subject</label>
+    <div className="form-group">
+        <div className="input-group">
+            <span className="input-group-addon">
+                <span className="glyphicon glyphicon-user"></span>
+            </span>
+            <input className="form-control" type="text" placeholder="Subject" ref="subject" name="Subject" autoComplete="off" />
+        </div>
+    </div>
+</div> */}
+
+{/* <div className="form-group">
+                                            <FroalaEditor  id="froala-editor" tag="textarea" name="Description" ref="action" model={this.state.model} config={this.state.FroalaConfig} onModelChange={this.handleModelChange.bind(this)}  />
+                                         <input id= "jkl" type="hidden" value={this.state.model} />
+                                        </div> */}
