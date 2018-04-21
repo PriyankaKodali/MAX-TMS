@@ -4,6 +4,31 @@
     height:110px;
 }
 
+.myContainerHeading{
+    text-align: left;
+    color: rgb(7, 119, 189);
+}
+
+.formheader{
+    margin: 0;
+    padding: 10px 0;
+    font-weight: 700;
+    text-align: left;
+    background-color: rgb(93, 175, 230);
+    color: white;
+    border-radius: 6px;
+    padding-left: 10px;
+    font-size: 17px;
+}
+.headerbutton{
+    margin: 0;
+    text-align: left;
+    padding: 4px 0;
+    background-color: rgb(93, 175, 230);
+    color: white;
+    padding-right: 14px;
+}
+
 
 .taskLayout{
     /* max-width: 320px; */
@@ -14,9 +39,8 @@
 
 .taskSearch
   {
-    padding:7px 0;
+    padding-left:11px;
     box-sizing: border-box; 
-    background-color: lightgray;
     margin-bottom: 10px;
     height:83px;
  }
@@ -26,6 +50,14 @@
     margin-right: 1%;
     width: 98%;
 }
+
+.myViewTaskContainer{
+    position: absolute;
+    margin-left: 4%;
+    margin-right: 1%;
+    width: 90%;
+}
+
 
 .mytext{
     resize:vertical;
@@ -71,73 +103,124 @@
 }
 
  .mytable > tr > th{
-    background: #b4b1e2;
+    background: #aad9f8;
 
 }
 
 .mytable > tr > td{
-background: rgb(203, 202, 238);
+background: rgb(215, 233, 243);
 border-spacing: pink;
 height: 10px;
 }
 
+ .row{
+    margin-top: 3px;
+ }
+
+ .react-bs-table-pagination {
+    margin-top: -11px;
+}
+
+ .pagination {
+    display: inline-block;
+    padding-left: 0;
+    margin: 3px 0;
+    border-radius: 4px;
+}
+
+.DraftEditor-editorContainer {
+    background-color: rgba(255,255,255,0);
+    border-left: .1px solid transparent;
+    position: relative;
+    z-index: 0; 
+}
 
 
-
-
-
-
-/* .FirstHeading {
-    background-color: #8ca5ce;
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: #FFFFFF;
-    height: 24px;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 8.5pt;
-    font-weight: bold;
-    text-transform: uppercase;
-    border-top-style: none;
-    border-right-style: none;
-    border-left-style: none;
-    clip: rect(auto auto auto auto);
-    float: none;
-    text-indent: 12px;
+.actionTable > tbody>tr>th{
+    background: #526b77;
     color: white;
-
-}
-.SecondHeading {
-    background-color: #c6dbf2;
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: #FFFFFF;
-    height: 20px;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 8.5pt;
-    font-weight: bold;
-    text-transform: capitalize;
-    border-top-style: none;
-    border-right-style: none;
-    border-left-style: none;
-    clip: rect(auto auto auto auto);
-    float: none;
-    text-indent: 5px;
-    color: black;
-    width: 12.5%;
 }
 
+.rdw-editor-wrapper {
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    border: 1px solid #e6e6e6;
+}
 
-.ChildRows {
-    background-color: aliceblue;
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: #FFFFFF;
-    height: 20px;
-    font-family: Arial;
-    font-size: 9.5pt;
-    border: 1px solid white;
-    clip: rect(auto auto auto auto);
-    float: none;
-    text-indent: 5px;
-    width: 12.5%;
-} */
+.draft-editor-inner {
+    padding: 0 10px;
+}
+
+.headertable> tbody> tr>th{
+    background: rgb(247, 247, 247)
+}
+
+.panel-heading {
+    padding: 1px 14px;
+    border-bottom: 1px solid transparent;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.table > tbody > tr > td {
+    line-height: 1;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    padding-bottom: 0px;
+}
+
+.mytable > tbody > tr > td {
+    line-height: 1;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    padding-bottom: 4px;
+}
+
+.mytable > tbody > tr  {
+    line-height: 1;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    padding-bottom: 4px;
+    height: 29px;
+}
+
+
+
+.react-bs-container-header table-header-wrapper{
+    line-height: 1;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    padding-bottom: 0px;
+}
+
+.headerImage{
+background-color: rgb(93, 175, 230);
+width: 4.333333%;
+padding-top: 11px;
+}
+
+.myRow{
+    margin-left: 0px;
+}
+
+.react-bs-table .table > thead > tr > th{
+    padding: 4px 9px;
+}
+
+
+.arrow{
+    transition: transform .3s;
+}
+
+.arrow.up{
+    transform:  rotate(180deg)
+}
+
+.arrow.down{
+    transform:  rotate(0deg)
+
+}

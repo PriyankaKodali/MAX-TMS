@@ -59,3 +59,34 @@ html,body {
   position: unset !important;
   height: auto !important;
 }
+
+
+.p0{
+  padding: 0!important;
+}
+
+.pver10{
+  padding-top:10px!important;
+  padding-bottom:10px!important; 
+}
+
+.mhor10{
+  margin-left:10px!important;
+  margin-right:10px!important;
+}
+
+.f18{
+  font-size:18px!important; 
+}
+
+.trStatusOpen{
+  background-color: rgb(255, 230, 230) !important
+}
+
+.trStatusClosed{
+  background-color: white;
+}
+
+.trStatusPending{
+  background-color: rgb(253, 243, 224) !important
+}

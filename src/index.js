@@ -15,6 +15,8 @@ import Task from './Task/Task';
 import TaskDashBoard from './TaskDashBoard/TaskDashBoard';
 import ViewTask from './TaskDashBoard/ViewTask';
 import Login from './Login/Login';
+import ForgotPassword from './ForgotPassword/ForgotPassword';
+import ChangePassword from './ChangePassword/ChangePassword';
 
 
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -27,7 +29,7 @@ import 'bootstrap-fileinput/themes/explorer/theme.js';
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
 
- window.isLoggedIn = sessionStorage.getItem("access_token") !== null;
+window.isLoggedIn = sessionStorage.getItem("access_token") !== null;
 
 ReactDOM.render((
     <HashRouter>
@@ -36,15 +38,31 @@ ReactDOM.render((
             <App>
                 <Route exact path="/" component={Login} />
                 <Route exact path="/Login" component={Login} />
-                <Route exact path="/Task" component={Task} />
+                {/* <Route exact path="/Task" component={Task} />
                 <Route exact path="/TaskDashBoard" component={TaskDashBoard} />
-                <Route exact path="/ViewTask" component={ViewTask} />
-           
+                <Route exact path="/ViewTask" component={ViewTask} /> */}
+                <Route exact path="/Task" render={(nextState) => requireAuth(nextState, <Task location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/TaskDashBoard" render={(nextState) => requireAuth(nextState, <TaskDashBoard location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/ViewTask" render={(nextState) => requireAuth(nextState, <ViewTask location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/ForgotPassword" component={ForgotPassword} />
+                <Route exact path="/ChangePassword" render={(nextState) => requireAuth(nextState, <ChangePassword location={nextState.location} history={nextState.history} match={nextState.match} />)} />
             </App>
         </div>
     </HashRouter>
 
 ),
-    document.getElementById("root")
-)
+    document.getElementById('root')
+);
+
+
+function requireAuth(nextState, component) {
+    var isLoggedIn = sessionStorage.getItem("access_token") != null;
+    if (!isLoggedIn) {
+        nextState.history.push("/Login");
+        return null;
+    }
+    else {
+        return component;
+    }
+}
 

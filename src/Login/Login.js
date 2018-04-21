@@ -47,7 +47,7 @@ class Login extends Component {
                         <button className="btn btn-md btn-primary btn-block" name="submit" value="Login" type="submit" onClick={this.handleSubmit.bind(this)}>Login</button>
                         <div className="loader loaderActivity btnSave" ></div>
                         <div style={{ marginTop: '18px' }} >
-                            <a>  <Link to="/ForgotPassword"> Forget Password? </Link> </a>
+                            <a>  <Link to="/ForgotPassword"> Forgot Password? </Link> </a>
                         </div>
                     </form>
                 </div>

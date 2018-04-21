@@ -17,10 +17,14 @@ var constraints = {
     BudgetedHours:{
         presence: true
     },
-    HoursWorked:{
-        presence: true
-    }
-  
+    HoursWorked: {
+        presence: true,
+        numericality: {
+          onlyInteger: true,
+          greaterThan: 0,
+          lessThanOrEqualTo: 10
+        }
+      }
 }
 
 validate.validators.presence.message = "is required";

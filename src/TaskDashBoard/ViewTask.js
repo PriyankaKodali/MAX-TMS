@@ -7,11 +7,12 @@ import Select from 'react-select';
 import { ApiUrl } from '.././Config.js';
 //import FroalaEditor from 'react-froala-wysiwyg';
 import { toast } from 'react-toastify';
-import { MyAjaxForAttachments } from '../MyAjax.js';
+import { MyAjaxForAttachments, MyAjax } from '../MyAjax.js';
 import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { validate } from 'validate.js'
 
 var moment = require('moment');
 
@@ -32,11 +33,8 @@ class ViewTask extends Component {
             Status: null, Statuss: [], Model: "", model: "", FroalaConfig: froalaConfig,
             CreatedOn: moment(), CreatedBy: '', Action: null, StartDate: moment().format("YYYY-MM-DD"),
             ActionTypes: [], ActionType: null, TaskInfo: [], TaskLog: [], user: "", DescriptionHtml: "",
-            Description: EditorState.createEmpty(), IsDisabled: false, ActivityLog: [], EndDate: "",
-            BudgetedHours: '', showHoursWorked: false
-
-            // ActionTypes: [{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" },
-            // { value: "Resolved", label: "Resolved" }]
+            Description: EditorState.createEmpty(), IsDisabled: false, budgetedHoursDisabled: true, ActivityLog: [], EndDate: "",
+            BudgetedHours: '', showHoursWorked: false, maxBudgetedHours: ''
         }
     }
 
@@ -45,7 +43,8 @@ class ViewTask extends Component {
         this.setState({
             TaskId: this.props.location.state["TaskId"],
             AssignedBy: this.props.location.state["AssignedBy"],
-            TaskOwner: this.props.location.state["TaskOwner"]
+            TaskOwner: this.props.location.state["TaskOwner"],
+            Status: this.props.location.state["Status"]
         }, () => {
 
             if (this.props.location.state) {
@@ -63,12 +62,17 @@ class ViewTask extends Component {
                         this.setState({ TaskLog: data["taskLog"] })
                     }
                 })
+
+                MyAjax(
+                    ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?UserId=" + this.props.location.state["AssignedBy"],
+                    (data) => { this.setState({ Assignees: data["employees"] }) },
+                    (error) => toast(error.responseText, {
+                        type: toast.TYPE.ERROR
+                    })
+                )
+
             }
-            $.ajax({
-                url: ApiUrl + "/api/MasterData/GetEmp?OrgId=" + sessionStorage.getItem("OrgId"),
-                type: "get",
-                success: (data) => { this.setState({ Assignees: data["employees"] }) }
-            })
+
         })
     }
 
@@ -99,38 +103,72 @@ class ViewTask extends Component {
         setUnTouched(document);
     }
 
-
     render() {
         return (
 
-            <div style={{ marginTop: '5%' }} key={this.state.ActionTypes} >
+            <div className="container" style={{ marginTop: '3.5%' }} key={this.state.ActionTypes} >
+                <br />
+                <h4 className="col-xs-12"> <label>Task Details : {this.state.TaskId}</label><span className="pull-right" /> </h4>
+                <div className="col-md-6 col-xs-12 ">
+                    <table className="table table-condensed table-bordered headertable">
+                        <tbody>
+                            <tr>
+                                <th>Created By</th>
+                                <td>{this.state.TaskInfo["CreatedBy"]}</td>
+                            </tr>
+                            <tr>
+                                <th>Created On</th>
+                                <td>{this.state.TaskInfo["TaskDate"]}</td>
+                            </tr>
+                            <tr>
+                                <th>Assigned To </th>
+                                <td>{this.state.TaskInfo["TaskOwner"]}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                <div className="myContainer">
-                    <div class="col-xs-12">
-                        <table className="mytable" style={{ borderColor: '1px solid blue' }}>
-                            <tr >
-                                <td colspan={2}> <label> Task </label> {this.state.TaskId} Details</td>
-                                <td colspan={2}> <label> Creator : </label>  {this.state.TaskInfo["CreatedBy"]}  </td>
-                                <td colSpan={2}> <label> Created On :</label> {this.state.TaskInfo["TaskDate"]}  </td>
+                <div className="col-md-6 col-xs-12 ">
+                    <table className="table table-condensed table-bordered headertable">
+                        <tbody>
+                            <tr>
+                                <th>Priority </th>
+                                <td>{this.state.TaskInfo["Priority"]}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td> {this.state.TaskInfo["Status"]} </td>
                             </tr>
 
                             <tr>
-                                <td > <label>Priority:</label>  {this.state.TaskInfo["Priority"]}  </td>
-                                <td ><label> Status:</label> {this.state.TaskInfo["Status"]}  </td>
-                                <td colspan={2}> <label> Assigned To: </label>  {this.state.TaskInfo["TaskOwner"]}  </td>
-                                <td  > <label> AssignedDate: </label> {this.state.TaskInfo["TaskDate"]}  </td>
+                                <th>Assigned Date</th>
+                                <td> {this.state.TaskInfo["TaskDate"]}  </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="col-xs-12">
+                    <table className="table table-condensed table-bordered headertable">
+                        <tbody>
+                            <tr>
+                                <th style={{ width: '20px' }}>Subject </th>
+                                <td>{this.state.TaskInfo["Subject"]}</td>
                             </tr>
                             <tr>
-                                <td > <label>Description:</label></td>
-                                <td colSpan={4}> <p> <label> Subject: </label> {this.state.TaskInfo["Subject"]}</p> <p>   {this.state.TaskInfo["Description"]} </p> </td>
+                                <th style={{ width: '20px' }} >Description</th>
+                                <td>  {this.state.TaskInfo["Description"]}  </td>
                             </tr>
-                        </table>
+                        </tbody>
+                    </table>
+                </div>
 
-                    </div>
+                <h4 className="col-xs-12" > <label>  Action/Responses </label> </h4>
 
-                    <div className="col-xs-12" style={{ marginTop: '1%', marginBottom: '1%' }}>
-                        <table className="mytable" >
-                            <tr >  <td colspan={9} style={{ backgroundColor: 'rgb(143, 146, 224);' }}> Action / Responses  </td> </tr>
+                <div className="col-xs-12">
+                    <table className="table table-condensed table-bordered actionTable mytable">
+                        <tbody>
                             <tr>
                                 <th> Task Date</th>
                                 <th > Assigned By</th>
@@ -148,10 +186,9 @@ class ViewTask extends Component {
                                             <td> {ele["AssignedBy"]} </td>
                                             <td>  {
                                                 ele["Attachments"] != null ?
-                                                    ele["Attachments"].map((el, j) => {
+                                                    ele["Attachments"].map((el) => {
                                                         return (
-                                                            //  <a href = { el["url"]}></a>
-                                                            el["url"]
+                                                            <a href={el} target="blank"> <i className='fa fa-paperclip' style={{ fontSize: '18px', cursor: 'pointer' }}  ></i> </a>
                                                         )
                                                     })
                                                     :
@@ -162,7 +199,7 @@ class ViewTask extends Component {
                                             <td> {ele["AssignedTo"]}</td>
                                             <td> {ele["Status"]}</td>
                                             <td style={{ textAlign: 'center' }}>
-                                                { ele["HoursWorked"] > 0 ?
+                                                {ele["HoursWorked"] > 0 ?
                                                     ele["HoursWorked"]
                                                     :
                                                     ""
@@ -172,236 +209,199 @@ class ViewTask extends Component {
                                     )
                                 })
                             }
+                        </tbody>
+                    </table>
 
-                        </table>
-                    </div>
-                    <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)} >
+                </div>
 
-                        {
-                            sessionStorage.getItem("EmpId") === this.state.AssignedBy ?
+                <div className="col-xs-12">
 
-                                <div className="col-xs-3">
-                                    <label>Action Type </label>
-                                    <div className="form-group">
-                                        <div className="input-group">
-                                            <span className="input-group-addon">
-                                                <span className="glyphicon glyphicon-user"></span>
-                                            </span>
-                                            <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                options={[{ value: "AcceptToClose", label: "Accept To Close" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                        </div>
-                                    </div>
+                    {
+                        this.state.Status != "Closed" && sessionStorage.getItem("EmpId") === this.state.TaskOwner || sessionStorage.getItem("EmpId") === this.state.AssignedBy ?
+                            <div className="panel panel-default">
+                                <div className="panel-heading">
+                                    <h4>Action</h4>
                                 </div>
-
-                                :
-                                sessionStorage.getItem("EmpId") === this.state.TaskOwner ?
-
-                                    <div className="col-xs-3">
-                                        <label>Action Type </label>
-                                        <div className="form-group">
-                                            <div className="input-group">
-                                                <span className="input-group-addon">
-                                                    <span className="glyphicon glyphicon-user"></span>
-                                                </span>
-                                                <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                    options={[{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" }, { value: "Resolved", label: "Resolved" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    :
-                                    <div />
-
-                        }
-
-                        {
-                            this.state.ActionType != null ?
-                                this.state.ActionType.value === "Assign" ?
-                                    <div>
-                                        <div className="col-xs-3">
-                                            <label> Assign to</label>
-                                            <div className="form-group">
-                                                <div className="input-group">
-                                                    <span className="input-group-addon">
-                                                        <span className="glyphicon glyphicon-user"></span>
-                                                    </span>
-                                                    <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.Assignee} options={this.state.Assignees} onChange={this.AssignedToChanged.bind(this)} />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-xs-3">
-                                            <label>No. Of Hours Worked</label>
-                                            <div className="form-group">
-                                                <div className="input-group">
-                                                    <span className="input-group-addon">
-                                                        <span className="glyphicon glyphicon-time" ></span>
-                                                    </span>
-                                                    <input className="form-control" name="HoursWorked" type="number" min="0" ref="hoursWorked" />
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div className="panel-body pver10 p0">
+                                    <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)} >
 
                                         {
-                                            this.state.showHoursWorked ?
-                                                <div className="col-xs-2 form-group">
-                                                    <label> Previously worked hours </label>
-                                                    <input className="form-control" name="hoursWorked" ref="hoursWorked" value={this.state.HoursWorked} />
+                                            sessionStorage.getItem("EmpId") === this.state.AssignedBy && this.state.Status != "Closed" ?
+
+                                                <div className="col-md-3">
+                                                    <label>Action Type </label>
+                                                    <div className="form-group">
+                                                        <div className="input-group">
+                                                            <span className="input-group-addon">
+                                                                <span className="glyphicon glyphicon-user"></span>
+                                                            </span>
+                                                            <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
+                                                                options={[{ value: "AcceptToClose", label: "Accept To Close" }, { value: "Reopen", label: "Reopen" }]} onChange={this.ActionTypeChanged.bind(this)} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                :
+                                                sessionStorage.getItem("EmpId") === this.state.TaskOwner && this.state.Status != "Closed" ?
+                                                    <div className="col-md-3">
+                                                        <label>Action Type </label>
+                                                        <div className="form-group">
+                                                            <div className="input-group">
+                                                                <span className="input-group-addon">
+                                                                    <span className="glyphicon glyphicon-user"></span>
+                                                                </span>
+                                                                <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
+                                                                    options={[{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" }, { value: "Resolved", label: "Resolved" }]} onChange={this.ActionTypeChanged.bind(this)} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    :
+                                                    ""
+                                        }
+
+                                        {
+                                            this.state.ActionType != null ?
+                                                <div>
+                                                    {
+                                                        this.state.ActionType.value === "Assign" ?
+
+                                                            <div className="col-md-3">
+                                                                <label> Assign to</label>
+                                                                <div className="form-group">
+                                                                    <div className="input-group">
+                                                                        <span className="input-group-addon">
+                                                                            <span className="glyphicon glyphicon-user"></span>
+                                                                        </span>
+                                                                        <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.Assignee} options={this.state.Assignees} onChange={this.AssignedToChanged.bind(this)} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            :
+                                                            ""
+                                                    }
+
+                                                    {
+                                                        this.state.ActionType.value === "Pending" ?
+
+                                                            <div >
+                                                                <div className="col-md-3">
+                                                                    <label>Expected/Start Date </label>
+                                                                    <div className="form-group">
+                                                                        <div className="input-group">
+                                                                            <span className="input-group-addon">
+                                                                                <span className="glyphicon glyphicon-calendar"></span>
+                                                                            </span>
+                                                                            <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOS" ref="dos" autoComplete="off" defaultValue={this.state.StartDate} min={moment().format("YYYY-MM-DD")} />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-md-3">
+                                                                    <label>Expected Date of Completion </label>
+                                                                    <div className="form-group">
+                                                                        <div className="input-group">
+                                                                            <span className="input-group-addon">
+                                                                                <span className="glyphicon glyphicon-calendar"></span>
+                                                                            </span>
+                                                                            <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOC" ref="doc" autoComplete="off" defaultValue={this.state.EndDate} min={moment().format("YYYY-MM-DD")} onChange={this.EdocChanged.bind(this)} />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="col-md-3">
+                                                                    <label>Planned Budgeted Hours</label>
+                                                                    <div className="form-group">
+                                                                        <div className="input-group">
+                                                                            <span className="input-group-addon">
+                                                                                <span className="glyphicon glyphicon-time" ></span>
+                                                                            </span>
+                                                                            <input className="form-control" disabled={this.state.budgetedHoursDisabled} name="BudgetedHours" type="number" min="0" max={this.state.maxBudgetedHours} ref="budgetedhours" defaultValue={this.state.BudgetedHours} />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            :
+                                                            ""
+                                                    }
+
+                                                    <div className="col-xs-3" style={{width: '26%'}} >
+                                                        <label>No. Of Hours Worked</label>
+                                                        <div className="form-group">
+                                                            <div className="input-group">
+                                                                <span className="input-group-addon">
+                                                                    <span className="glyphicon glyphicon-time" ></span>
+                                                                </span>
+                                                                <input className="form-control" name="HoursWorked" type="number" min="0" max="10" ref="workedHours" autoComplete="off" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {
+                                                        this.state.showHoursWorked ?
+                                                            <div className="col-xs-3 form-group" style={{width: '26%'}}>
+                                                                <label> Previously worked hours </label>
+                                                                <input className="form-control" disabled="true" name="previouslyWorkedHours" value={this.state.HoursWorked} />
+                                                            </div>
+                                                            :
+                                                            ""
+                                                    }
                                                 </div>
                                                 :
                                                 <div />
                                         }
-                                    </div>
 
-                                    :
-                                    this.state.ActionType.value === "Pending" ?
-                                        <div key={this.state.ActivityLog}>
-                                            <div className="col-md-3">
-                                                <label>Expected/Start Date </label>
-                                                <div className="form-group">
-                                                    <div className="input-group">
-                                                        <span className="input-group-addon">
-                                                            <span className="glyphicon glyphicon-calendar"></span>
-                                                        </span>
-                                                        <input className="col-md-3 form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOS" ref="dos" autoComplete="off" defaultValue={this.state.StartDate} />
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            <div className="col-md-3">
-                                                <label>Expected Date of Completion </label>
-                                                <div className="form-group">
-                                                    <div className="input-group">
-                                                        <span className="input-group-addon">
-                                                            <span className="glyphicon glyphicon-calendar"></span>
-                                                        </span>
-                                                        <input className="col-md-3 form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOC" ref="doc" autoComplete="off" defaultValue={this.state.EndDate} />
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            <div className="col-xs-3">
-                                                <label>Planned Budgeted Hours</label>
-                                                <div className="form-group">
-                                                    <div className="input-group">
-                                                        <span className="input-group-addon">
-                                                            <span className="glyphicon glyphicon-time" ></span>
-                                                        </span>
-                                                        <input className="form-control" disabled={this.state.IsDisabled} name="BudgetedHours" type="number" min="0" ref="budgetedhours" defaultValue={this.state.BudgetedHours} />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        {
+                                            sessionStorage.getItem("EmpId") === this.state.TaskOwner || sessionStorage.getItem("EmpId") === this.state.AssignedBy ?
 
-                                            <div className="col-xs-3">
-                                                <label>No. Of Hours Worked</label>
-                                                <div className="form-group">
-                                                    <div className="input-group">
-                                                        <span className="input-group-addon">
-                                                            <span className="glyphicon glyphicon-time" ></span>
-                                                        </span>
-                                                        <input className="form-control" name="hoursWorked" type="number" min="0" ref="hoursWorked" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {
-                                                this.state.showHoursWorked ?
-                                                    <div className="col-xs-2 form-group">
-                                                        <label> Previously worked hours </label>
-                                                        <input className="form-control" name="hoursWorked" ref="hoursWorked" value={this.state.HoursWorked} />
-                                                    </div>
-                                                    :
-                                                    <div />
-                                            }
-
-                                        </div>
-                                        :
-
-                                        this.state.ActionType.value === "Resolved" ?
-
-                                            <div>
-
-                                                <div className="col-xs-3">
-                                                    <label>No. Of Hours Worked</label>
-                                                    <div className="form-group">
-                                                        <div className="input-group">
-                                                            <span className="input-group-addon">
-                                                                <span className="glyphicon glyphicon-time" ></span>
-                                                            </span>
-                                                            <input className="form-control" name="HoursWorked" type="number" min="0" ref="hoursWorked" />
+                                                <div>
+                                                    <div className="col-xs-12" style={{ paddingTop: '12px' }}>
+                                                        <label> Action  </label>
+                                                        <div className="form-group" style={{ height: "auto" }}>
+                                                            <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
+                                                            <input hidden ref="description" name="forErrorShowing" />
                                                         </div>
                                                     </div>
-                                                </div>
-
-                                                {
-                                                    this.state.showHoursWorked ?
-                                                        <div className="col-xs-2 form-group">
-                                                            <label> Previously worked hours </label>
-                                                            <input className="form-control" name="hoursWorked" ref="hoursWorked" value={this.state.HoursWorked} />
+                                                    <div className="col-xs-12">
+                                                        <div className="form-group">
+                                                            <input className="file" name="file[]" id="input-id" type="file" ref="Upldfiles" data-preview-file-type="any" showUpload="false" multiple />
                                                         </div>
-                                                        :
-                                                        <div />
-                                                }
-                                            </div>
-
-                                            :
-                                            <div />
-                                :
-                                <div />
-                        }
-
-                        {
-                            sessionStorage.getItem("EmpId") === this.state.TaskOwner || sessionStorage.getItem("EmpId") === this.state.AssignedBy ?
-                                <div>
-                                    <div className="col-xs-12 ">
-                                        <h4 className="heading"> Action </h4>
-                                        <div className="col-xs-12 actionLayout" >
-                                            <div className="col-xs-12" style={{ paddingTop: '12px' }}>
-                                                <label> Action  </label>
-                                                <div className="form-group" style={{ height: "auto" }}>
-                                                    <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
-                                                    <input hidden ref="actionResponse" name="forErrorShowing" />
+                                                    </div>
+                                                    <div className="col-xs-12 text-center form-group">
+                                                        <button type="submit" name="submit" className="btn btn-primary" style={{ marginTop: '1%' }}>Submit</button>
+                                                        <div className="loader"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-xs-12">
-                                                <div className="form-group">
-                                                    <input className="file" name="file[]" id="input-id" type="file" ref="Upldfiles" data-preview-file-type="any" showUpload="false" multiple />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="col-xs-12 text-center form-group">
-                                        <button type="submit" name="submit" className="btn btn-primary" style={{ marginTop: '1%' }}>Submit</button>
-                                        <div className="loader"></div>
-                                    </div>
+                                                :
+                                                <div />
+
+                                        }
+
+                                    </form>
                                 </div>
-                                :
-                                <div />
-                        }
-
-                    </form>
+                            </div>
+                            : <div />
+                    }
                 </div>
             </div>
-
         )
     }
 
-    uploadCallback() {
-
+    uploadCallback(file) {
     }
 
     messageBoxChange(val) {
         this.setState({ Description: val, DescriptionHtml: draftToHtml(convertToRaw(val.getCurrentContent())) });
     }
 
+    // myNoteChanged(val) {
+    //     this.setState({ myNote: val, myNoteHtml: val.toString('html') })
+    // }
 
-    myNoteChanged(val) {
-        this.setState({ myNote: val, myNoteHtml: val.toString('html') })
-
-    }
     ActionTypeChanged(val) {
         if (val) {
-            if (val.value != "AcceptToClose") {
+            if (val.value != "AcceptToClose" || val.value != "Reopen") {
                 $.ajax({
                     url: ApiUrl + "/api/Activities/GetTaskInfo?taskId=" + this.props.location.state["TaskId"] +
                         "&actionType=" + val.value + "&userId=" + sessionStorage.getItem("EmpId"),
@@ -412,25 +412,25 @@ class ViewTask extends Component {
                                 this.setState({
                                     StartDate: moment(data["activitylog"]["StartDate"]).format("YYYY-MM-DD"),
                                     EndDate: moment(data["activitylog"]["EndDate"]).format("YYYY-MM-DD"),
-                                    BudgetedHours: data["activitylog"]["BudgetedHours"], IsDisabled: true,
-                                    HoursWorked: data["activitylog"]["HoursWorked"], showHoursWorked: true
+                                    BudgetedHours: data["activitylog"]["BudgetedHours"], IsDisabled: true, budgetedHoursDisabled: true,
+                                    HoursWorked: data["activitylog"]["TotalHoursWorked"], showHoursWorked: true
                                 }, () => {
                                     this.setState({ ActionType: val })
                                     showErrorsForInput(this.refs.action.wrapper, null)
-                                    console.log(moment(data["activitylog"]["StartDate"]).format("YYYY-MM-DD"));
+                                    // console.log(moment(data["activitylog"]["StartDate"]).format("YYYY-MM-DD"));
                                 })
                             }
 
                             else if (val.value == "Assign" && this.state.ActivityLog != null) {
-                                this.setState({ HoursWorked: data["activitylog"]["HoursWorked"], showHoursWorked: true })
+                                this.setState({ ActionType: val, HoursWorked: data["activitylog"]["TotalHoursWorked"], showHoursWorked: true })
                             }
 
                             else if (val.value == "Resolved" && this.state.ActivityLog != null) {
-                                this.setState({ HoursWorked: data["activitylog"]["HoursWorked"], showHoursWorked: true })
+                                this.setState({ ActionType: val, HoursWorked: data["activitylog"]["TotalHoursWorked"], showHoursWorked: true })
                             }
 
                             else {
-                                this.setState({ ActionType: val })
+                                this.setState({ ActionType: val, showHoursWorked: false })
                                 showErrorsForInput(this.refs.action.wrapper, null)
                             }
                         })
@@ -454,12 +454,35 @@ class ViewTask extends Component {
 
     AssignedToChanged(val) {
         if (val) {
-            this.setState({ Assignee: val })
-            showErrorsForInput(this.refs.assignee.wrapper, null);
+            if (val.value != sessionStorage.getItem("EmpId") && val.value != this.state.TaskInfo["Creator"]) {
+                this.setState({ Assignee: val })
+                showErrorsForInput(this.refs.assignee.wrapper, null);
+            }
         }
         else {
-            this.setState({ Assignee: '' })
+            this.setState({ Assignee: '' });
+            showErrorsForInput(this.refs.assignee.wrapper, ["Select Assignee"]);
         }
+    }
+
+    EdocChanged() {
+        if (this.refs.doc.value != "") {
+            var budgetedDays = moment(this.refs.doc.value).diff(moment(this.refs.dos.value), 'days');
+            if (budgetedDays == 0) {
+                this.setState({ maxBudgetedHours: 8, budgetedHoursDisabled: false })
+            }
+            else {
+                this.setState({ maxBudgetedHours: budgetedDays * 8, budgetedHoursDisabled: false })
+            }
+        }
+
+        else {
+            this.refs.budgetedhours.value = ""
+            this.setState({ budgetedHoursDisabled: true });
+            showErrorsForInput(this.refs.doc, ["Select expected date of closer"]);
+        }
+
+
     }
 
     handleSubmit(e) {
@@ -484,18 +507,18 @@ class ViewTask extends Component {
 
         if (this.state.ActionType.value === "Assign") {
             data.append("assignee", this.state.Assignee.value);
-            data.append("hoursWorked", this.refs.hoursWorked.value);
+            data.append("hoursWorked", this.refs.workedHours.value);
         }
 
         if (this.state.ActionType.value === "Pending") {
             data.append("budgetedHours", this.refs.budgetedhours.value);
             data.append("edos", this.refs.dos.value);
             data.append("edoc", this.refs.doc.value);
-            data.append("hoursWorked", this.refs.hoursWorked.value);
+            data.append("hoursWorked", this.refs.workedHours.value);
         }
 
         if (this.state.ActionType.value === "Resolved") {
-            data.append("hoursWorked", this.refs.hoursWorked.value)
+            data.append("hoursWorked", this.refs.workedHours.value)
         }
 
         var files = $("#input-id").fileinput("getFileStack");
@@ -505,7 +528,6 @@ class ViewTask extends Component {
                 data.append(files[i].filename, files[i]);
             }
         }
-
 
         var url = ApiUrl + "/api/Activities/EditActivity"
 
@@ -547,40 +569,132 @@ class ViewTask extends Component {
 
 
     validate(e) {
-        var success = ValidateForm(e);
+        // var success = ValidateForm(e);
+        let errors = {};
+        var success = true;
+        var isSubmit = e.type === "submit";
+
+
+        if (isSubmit) {
+            $(e.currentTarget.getElementsByClassName('form-control')).map((i, el) => {
+                el.classList.remove("un-touched");
+            });
+        }
 
         if (!this.state.ActionType || !this.state.ActionType.value) {
             success = false;
-            showErrorsForInput(this.refs.action.wrapper, ["Please select action type"])
+            showErrorsForInput(this.refs.action.wrapper, ["Please select action type"]);
+            if (isSubmit) {
+                this.refs.action.focus();
+                isSubmit = false;
+            }
+        }
+        else {
+            showErrorsForInput(this.refs.action.wrapper, []);
         }
 
-        if (this.state.ActionType != undefined) {
-            if (this.state.ActionType.value == "Assign") {
-                if (!this.state.Assignee || !this.state.Assignee.value) {
-                    success = false;
-                    showErrorsForInput(this.refs.assignee.wrapper, ["Please select Assignee"])
+        if (this.state.ActionType != undefined && this.state.ActionType.value != "Reopen" && this.state.ActionType.value != "AcceptToClose") {
+            if (this.state.ActionType.value == "Assign" && (!this.state.Assignee || !this.state.Assignee.value)) {
+                success = false;
+                showErrorsForInput(this.refs.assignee.wrapper, ["Please select Assignee"]);
+                if (isSubmit) {
+                    this.refs.assignee.focus();
+                    isSubmit = false;
                 }
+            }
+
+            if (this.state.ActionType.value == "Pending") {
+                if (validate.single(this.refs.dos.value, { presence: true }) !== undefined) {
+                    success = false;
+                    showErrorsForInput(this.refs.dos, ["Select expected date of beginning"]);
+                    if (isSubmit) {
+                        this.refs.dos.focus();
+                        isSubmit = false;
+                    }
+                }
+                else {
+                    showErrorsForInput(this.refs.dos, []);
+                }
+
+                if (validate.single(this.refs.doc.value, { presence: true }) !== undefined) {
+                    success = false;
+                    showErrorsForInput(this.refs.doc, ["Select expected date of closure"]);
+                    if (isSubmit) {
+                        this.refs.doc.focus();
+                        isSubmit = false;
+                    }
+                }
+                else if (moment(this.refs.doc.value).isBefore(moment(this.refs.dos.value))) {
+                    success = false;
+                    showErrorsForInput(this.refs.doc, ["Date of closure should not be less that start date"]);
+                    if (isSubmit) {
+                        this.refs.doc.focus();
+                        isSubmit = false;
+                    }
+                }
+                else {
+                    showErrorsForInput(this.refs.doc, []);
+                }
+
+                if (success) {
+                    var maxBudgetedHours = moment(this.refs.doc.value).diff(moment(this.refs.dos.value), 'days') * 8;
+                    if (this.refs.budgetedhours.value === "") {
+                        success = false;
+                        showErrorsForInput(this.refs.budgetedhours, ["Please enter budgeted hours"]);
+                        if (isSubmit) {
+                            this.refs.budgetedhours.focus();
+                            isSubmit = false;
+                        }
+                    }
+                    else if (this.refs.budgetedhours.value > maxBudgetedHours) {
+                        success = false;
+                        showErrorsForInput(this.refs.budgetedhours, ["Budgeted hours should not be more than " + maxBudgetedHours]);
+                        if (isSubmit) {
+                            this.refs.budgetedhours.focus();
+                            isSubmit = false;
+                        }
+                    }
+                    else {
+                        showErrorsForInput(this.refs.budgetedhours, []);
+                    }
+                }
+
+            }
+
+            if (this.refs.workedHours.value === "") {
+                success = false;
+                showErrorsForInput(this.refs.workedHours, ["Please enter worked hours"]);
+                if (isSubmit) {
+                    this.refs.workedHours.focus();
+                    isSubmit = false;
+                }
+            }
+            else if (this.refs.workedHours.value > 10) {
+                success = false;
+                showErrorsForInput(this.refs.workedHours, ["should be less than 10"]);
+                if (isSubmit) {
+                    this.refs.workedHours.focus();
+                    isSubmit = false;
+                }
+            }
+            else {
+                showErrorsForInput(this.refs.workedHours, []);
+            }
+
+            if (!this.state.Description.getCurrentContent().hasText()) {
+                showErrorsForInput(this.refs.description, ["Please enter action description"]);
+                success = false;
+                if (isSubmit) {
+                    this.refs.editor.focusEditor();
+                    isSubmit = false;
+                }
+            }
+            else {
+                showErrorsForInput(this.refs.description, []);
             }
         }
 
-        if (!this.state.Description.getCurrentContent().hasText()) {
-            showErrorsForInput(this.refs.actionResponse, ["Please enter action description"]);
-            success = false;
-        }
-        else {
-            showErrorsForInput(this.refs.actionResponse, []);
-        }
-
         return success;
-
     }
 }
 export default ViewTask;
-
-
-
-// options={[{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" },
-// { value: "Resolved", label: "Resolved" }]}
-
-
-

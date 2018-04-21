@@ -1,8 +1,21 @@
-.myContainer{
+/* .myContainer{
     position: absolute;
-    margin-left:8%;
-    margin-right: 8%;
+    margin-left:30%;
+    margin-right: 30%;
     width: 80%;
+} */
+
+.form-group{
+    margin-bottom: 5px;
+}
+
+.taskContainer{
+    position: absolute;
+    margin: 4.5%;
+    border: 1pt solid #b5b5b5;
+    border-radius: 42px;
+    padding: 5px;
+  
 }
 
 .myContainerHeading{
@@ -21,7 +34,8 @@
     display: block;
     position: relative;
     padding-left: 20px;
-    margin-bottom: 12px;
+    /* margin-bottom: 12px; */
+    margin-bottom: 0px;
     margin-top: 29px;
     cursor: pointer;
     font-size: 12px;
@@ -101,4 +115,15 @@
     margin: 0 auto;
     border: 1px solid #cccccc;
   }
+
+  .task-block {
+    margin: 5px 0;
+}
+
+.width58{
+    width:58.333%;
+}
+.width48{
+    width: 48%;
+}
   
