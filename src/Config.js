@@ -6,5 +6,9 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
    else {
     ApiUrl = "https://maxmaster.azurewebsites.net/api";
 }
+var remote = (remoteFunction) => {
+    remoteFunction.pagination = true;
+    return remoteFunction;
+}
 
-export { ApiUrl };
+export { ApiUrl, remote };

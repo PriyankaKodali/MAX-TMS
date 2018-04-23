@@ -1,7 +1,6 @@
 .taskSearch{
     padding:10px 0;
     margin-bottom: 10px;
-    height:110px;
 }
 
 .myContainerHeading{
@@ -14,12 +13,20 @@
     padding: 10px 0;
     font-weight: 700;
     text-align: left;
-    background-color: rgb(93, 175, 230);
+    background-color: #6b797f;
     color: white;
     border-radius: 6px;
     padding-left: 10px;
     font-size: 17px;
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
 }
+
+.react-bs-table-bordered {
+    border: 1px solid #ddd;
+    border-radius: 1px;
+}
+
 .headerbutton{
     margin: 0;
     text-align: left;
@@ -28,7 +35,6 @@
     color: white;
     padding-right: 14px;
 }
-
 
 .taskLayout{
     /* max-width: 320px; */
@@ -42,8 +48,8 @@
     padding-left:11px;
     box-sizing: border-box; 
     margin-bottom: 10px;
-    height:83px;
  }
+
 .myContainer{
     position: absolute;
     margin-left: 1%;
@@ -223,4 +229,8 @@ padding-top: 11px;
 .arrow.down{
     transform:  rotate(0deg)
 
+}
+
+.clearBtn{
+    margin-top:24px;
 }

@@ -3,6 +3,8 @@ import $ from 'jquery';
 import { ApiUrl } from '../Config';
 import Select from 'react-select';
 import './TaskDashBoard.css';
+import { MyAjax } from '../MyAjax';
+import { toast } from 'react-toastify';
 
 var moment = require('moment');
 var ReactBSTable = require('react-bootstrap-table');
@@ -38,6 +40,8 @@ class TaskDashBoard extends Component {
             myTasks: 1, currentPage: 1, sizePerPage: 10, dataTotalSize: 0, sortCol: 'CreatedDate',
             TaskFrom: '', sortDir: 'desc', Clients: [], Client: '', TasksOnMe: [], TasksByMe: [],
             TasksThroughMe: [], toDoList: true, tasksByMe: false, showTaskThroughMe: false,
+            TaskByMeSizePerPage: 10, TaskByMeCurrentPage: 1, TaskByMeDataTotalSize: 0,
+            TaskThroughMeSizePerPage: 10, TaskThroughMeCurrentPage: 1, TaskThroughMeDataTotalSize: 0
 
         }
     }
@@ -48,7 +52,6 @@ class TaskDashBoard extends Component {
     //     clickToSelect: true,
     //     onSelect: this.onRowSelect.bind(this),
     // };
-
 
     componentWillMount() {
         $.ajax({
@@ -68,6 +71,8 @@ class TaskDashBoard extends Component {
     }
 
     GetMyTasks(page, count) {
+
+
         var url = ApiUrl + "/api/Activities/GetMyTasks?EmpId=" + sessionStorage.getItem("EmpId") +
             "&clientId=" + this.state.Client +
             "&departmentId=" + this.state.Department +
@@ -77,16 +82,19 @@ class TaskDashBoard extends Component {
             "&page=" + page + "&count=" + count +
             "&sortCol=" + this.state.sortCol +
             "&sortDir=" + this.state.sortDir
-        $.ajax({
-            url: url,
-            type: "get",
-            success: (data) => {
+
+        MyAjax(
+            url,
+            (data) => {
                 this.setState({
-                    TasksOnMe: data["myTasks"], dataTotalSize: data["totalCount"],
+                    TasksOnMe: data["myTasks"], dataTotalSize: data["totalPages"],
                     currentPage: page, sizePerPage: count, IsDataAvailable: true
                 })
-            }
-        })
+            },
+            (error) => toast(error.responseText, {
+                type: toast.TYPE.ERROR
+            }), "GET", null
+        )
     }
 
     GetTasksByMe(page, count) {
@@ -99,16 +107,20 @@ class TaskDashBoard extends Component {
             "&page=" + page + "&count=" + count +
             "&sortCol=" + this.state.sortCol +
             "&sortDir=" + this.state.sortDir
-        $.ajax({
-            url: url,
-            type: "get",
-            success: (data) => {
+
+        MyAjax(
+            url,
+            (data) => {
                 this.setState({
-                    TasksByMe: data["tasksByMe"], dataTotalSize: data["totalCount"],
-                    currentPage: page, sizePerPage: count, IsDataAvailable: true
+                    TasksByMe: data["tasksByMe"], TaskByMeDataTotalSize: data["totalPages"],
+                    TaskByMeCurrentPage: page, TaskByMeSizePerPage: count, IsDataAvailable: true
                 })
-            }
-        })
+            },
+
+            (error) => toast(error.responseText, {
+                type: toast.TYPE.ERROR
+            }), "GET", null
+        )
     }
 
     GetTaskThroughMe(page, count) {
@@ -120,25 +132,37 @@ class TaskDashBoard extends Component {
             "&status=" + this.state.Status +
             "&page=" + page + "&count=" + count + "&sortCol=" + this.state.sortCol +
             "&sortDir=" + this.state.sortDir
-        $.ajax({
-            url: url,
-            type: "get",
-            success: (data) => {
+
+        MyAjax(
+            url,
+            (data) => {
                 this.setState({
-                    TasksThroughMe: data["tasksThroughMe"], dataTotalSize: data["totalCount"],
-                    currentPage: page, sizePerPage: count, IsDataAvailable: true
+                    TasksThroughMe: data["tasksThroughMe"], TaskThroughMeDataTotalSize: data["totalCount"],
+                    TaskThroughMeCurrentPage: page, TaskThroughMeSizePerPage: count, IsDataAvailable: true
                 })
-            }
-        })
+            },
+            (error) => toast(error.responseText, {
+                type: toast.TYPE.ERROR
+            }),
+            "GET", null
+        )
+        // $.ajax({
+        //     url: url,
+        //     type: "get",
+        //     success: (data) => {
+        //         this.setState({
+        //             TasksThroughMe: data["tasksThroughMe"], TaskThroughMeDataTotalSize: data["totalCount"],
+        //             TaskThroughMeCurrentPage: page, TaskThroughMeSizePerPage: count, IsDataAvailable: true
+        //         })
+        //     }
+        // })
     }
 
     render() {
 
-
-        return (
-            <div className="myContainer" style={{ marginTop: '4.3%' }}>
-                {/* <div className="col-md-12 taskSearch"> */}
-                <div className="taskSearch">
+       return (
+            <div className="myContainer" >
+                <div className="col-xs-12 taskSearch">
                     <div className="col-md-2 form-group">
                         <label>Task from </label>
                         <div className="form-group">
@@ -209,24 +233,26 @@ class TaskDashBoard extends Component {
                             />
                         </div>
                     </div>
-                    <div className="col-md-2 button-block">
-                        <input type="button" className="btn btn-default" style={{ marginTop: '12%' }} value="Clear" onClick={this.ClearClick.bind(this)} />
+                    <div className="col-md-1 button-block text-center">
+                        <input type="button" className="btn btn-default clearBtn" value="Clear" onClick={this.ClearClick.bind(this)} />
                     </div>
                 </div>
-
+                <div className="clearfix"></div>
                 <div className="col-xs-12">
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksOnMe" ?
                             <div>
-                                <div className="col-md-12" >
+                                <div className="col-xs-12" >
                                     <a onClick={() => { this.setState({ toDoList: !this.state.toDoList }) }} style={{ cursor: 'pointer' }} >
                                         <h3 className="col-xs-12 formheader"> To Do List <span className={(this.state.toDoList ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span></h3>
                                     </a>
                                 </div>
                                 {
                                     this.state.toDoList ?
-                                        <div className="col-md-12">
-                                            <BootstrapTable striped hover remote={true} pagination={true}
+
+                                    this.state.IsDataAvailable ?
+                                        <div className="col-xs-12">
+                                            <BootstrapTable striped hover pagination={true}
                                                 data={this.state.TasksOnMe} trClassName={trClassFormat}
                                                 fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
                                                 // selectRow={this.selectRowProp}
@@ -255,6 +281,8 @@ class TaskDashBoard extends Component {
                                             </BootstrapTable>
                                         </div>
                                         :
+                                        <div className="loader visble"></div>
+                                        :
                                         <div />
                                 }
                             </div>
@@ -266,24 +294,26 @@ class TaskDashBoard extends Component {
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksByMe" ?
                             <div >
-                                <div className="col-md-12" style={{ marginTop: '0.5%' }}>
+                                <div className="col-xs-12" style={{ marginTop: '0.5%' }}>
                                     <a onClick={() => this.setState({ tasksByMe: !this.state.tasksByMe })} style={{ cursor: 'pointer' }} >
-                                        <h3 className="col-md-12 formheader">Tasks Created By Me <span className={(this.state.tasksByMe ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span></h3>
+                                        <h3 className="col-xs-12 formheader">Tasks Created By Me <span className={(this.state.tasksByMe ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span></h3>
                                     </a>
                                 </div>
 
                                 {
                                     this.state.tasksByMe ?
-                                        <div className="col-md-12">
+
+                                    this.state.IsDataAvailable?
+                                        <div className="col-xs-12">
                                             <BootstrapTable striped hover remote={true} pagination={true} trClassName={trClassFormat}
-                                                fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
+                                                fetchInfo={{ dataTotalSize: this.state.TaskByMeDataTotalSize }}
                                                 data={this.state.TasksByMe}
                                                 options={{
-                                                    sizePerPage: this.state.sizePerPage,
-                                                    onPageChange: this.onTaskCreatedByMePageChange.bind(this),
-                                                    sizePerPageList: [{ text: '5', value: 5 },
-                                                    { text: '10', value: 10 },
-                                                    { text: 'ALL', value: this.state.dataTotalSize }],
+                                                    sizePerPage: this.state.TaskByMeSizePerPage,
+                                                    onPageChange: this.taskByMePageChange.bind(this),
+                                                    sizePerPageList: [{ text: '10', value: 10 },
+                                                    { text: '25', value: 25 },
+                                                    { text: 'ALL', value: this.state.TaskByMeDataTotalSize }],
                                                     page: this.state.currentPage,
                                                     onSizePerPageList: this.onTaskByMeSizePerPageList.bind(this),
                                                     paginationPosition: 'bottom',
@@ -304,6 +334,8 @@ class TaskDashBoard extends Component {
                                             </BootstrapTable>
                                         </div>
                                         :
+                                        <div className="loader visble"></div>
+                                        :
                                         <div />
                                 }
                             </div>
@@ -315,29 +347,30 @@ class TaskDashBoard extends Component {
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksThroughMe" ?
                             <div >
-                                <div className="col-md-12" style={{ marginTop: '0.5%' }}>
+                                <div className="col-xs-12" style={{ marginTop: '0.5%' }}>
                                     <a onClick={() => this.setState({ showTaskThroughMe: !this.state.showTaskThroughMe })} style={{ cursor: 'pointer' }}>
-                                        <h3 className="col-md-12 formheader"> Tasks Through Me  <span className={(this.state.showTaskThroughMe ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>  </h3>
+                                        <h3 className="col-xs-12 formheader"> Tasks Through Me  <span className={(this.state.showTaskThroughMe ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>  </h3>
                                     </a>
 
                                 </div>
 
                                 {
                                     this.state.showTaskThroughMe ?
-                                        <div className="col-md-12" >
+                                    this.state.IsDataAvailable ?
+                                        <div className="col-xs-12" >
                                             <BootstrapTable striped hover={false} remote={true} pagination={true}
                                                 data={this.state.TasksThroughMe} trClassName={trClassFormat}
-                                                fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
+                                                fetchInfo={{ dataTotalSize: this.state.TaskThroughMeDataTotalSize }}
                                                 options={{
                                                     sizePerPage: this.state.sizePerPage,
                                                     onPageChange: this.onTaskThroughMePageChange.bind(this),
                                                     sizePerPageList: [{ text: '10', value: 10 },
                                                     { text: '25', value: 25 },
-                                                    { text: 'ALL', value: this.state.dataTotalSize }],
+                                                    { text: 'ALL', value: this.state.TaskThroughMeDataTotalSize }],
                                                     page: this.state.currentPage,
-                                                    onSizePerPageList: this.onTaskThroughSizePerPageList.bind(this),
+                                                    onSizePerPageList: this.onTaskThroughMeSizePerPageList.bind(this),
                                                     paginationPosition: 'bottom',
-                                                    onSortChange: this.onTasksThroughMeSortChange.bind(this),
+                                                    onSortChange: this.onTaskThroughMeSortChange.bind(this),
                                                     onRowClick: this.rowClicked.bind(this)
                                                 }}>
 
@@ -353,6 +386,8 @@ class TaskDashBoard extends Component {
                                                 <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="6" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
                                             </BootstrapTable>
                                         </div>
+                                        :
+                                        <div className="loader visble"></div>
                                         :
                                         <div />
                                 }
@@ -566,42 +601,43 @@ class TaskDashBoard extends Component {
         this.GetMyTasks(this.state.currentPage, sizePerPage)
     }
 
+
+    taskByMePageChange(page, sizePerPage) {
+        this.GetTasksByMe(page, sizePerPage);
+    }
+
+    onTaskByMeSizePerPageList(TaskByMeSizePerPage) {
+        this.GetTasksByMe(this.state.TaskByMeCurrentPage, TaskByMeSizePerPage);
+    }
+
     onTasksByMeSortChange(sortCol, sortDir) {
         sortDir = this.state.sortCol === sortCol && this.state.sortDir === "asc" ? "desc" : "asc";
         this.setState({
             sortCol: sortCol,
             sortDir: sortDir
         }, () => {
-            this.GetTasksByMe(this.state.currentPage, this.state.sizePerPage);
+            this.GetTasksByMe(this.state.TaskByMeCurrentPage, this.state.TaskByMeSizePerPage);
         });
     }
 
-    onTaskCreatedByMePageChange(page, sizePerPage) {
-        this.GetTasksByMe(page, sizePerPage)
+
+    onTaskThroughMePageChange(page, sizePerPage) {
+        this.GetTaskThroughMe(page, sizePerPage);
     }
 
-    onTaskByMeSizePerPageList(sizePerPage) {
-        this.GetTasksByMe(this.state.taskBymePage, sizePerPage)
+    onTaskThroughMeSizePerPageList(TaskThroughMeSizePerPage) {
+        this.GetTaskThroughMe(this.state.TaskThroughMeCurrentPage, TaskThroughMeSizePerPage);
     }
 
-    onTasksThroughMeSortChange(sortCol, sortDir) {
+    onTaskThroughMeSortChange(sortCol, sortDir) {
         sortDir = this.state.sortCol === sortCol && this.state.sortDir === "asc" ? "desc" : "asc";
         this.setState({
             sortCol: sortCol,
             sortDir: sortDir
         }, () => {
-            this.GetTaskThroughMe(this.state.currentPage, this.state.sizePerPage);
-        });
+            this.GetTaskThroughMe(this.state.TaskThroughMeCurrentPage, this.state.TaskThroughMeSizePerPage);
+        })
     }
-
-    onTaskThroughMePageChange(page, sizePerPage) {
-        this.GetTaskThroughMe(page, sizePerPage)
-    }
-
-    onTaskThroughSizePerPageList(sizePerPage) {
-        this.GetTaskThroughMe(this.state.currentPage, sizePerPage);
-    }
-
 }
 
 export default TaskDashBoard;

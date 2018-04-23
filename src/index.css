@@ -36,7 +36,6 @@ html,body {
     border-top: 5px solid #3498db; /* Blue */
     border-radius: 50%;
     width: 30px;
-    height: 30px;
     animation: spin 1s linear infinite;
     margin: auto;
 }
@@ -90,3 +89,16 @@ html,body {
 .trStatusPending{
   background-color: rgb(253, 243, 224) !important
 }
+
+.navbar-nav>li>.dropdown-menu > hover{
+  background-color: rgb(128, 185, 240);
+  }
+  
+  .navbar-inverse .navbar-nav > li > a {
+    color: #38a6d2;
+    font-size: 17px;
+  }
+  
+  .navbar-inverse {
+    background-color: #efefef;
+  }

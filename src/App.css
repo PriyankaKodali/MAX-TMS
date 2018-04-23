@@ -48,7 +48,7 @@
   background-image: none;
 }
 
-.my-nav-bar{
+/* .my-nav-bar{
   background: #fff!important;
   position: absolute;
   top:0;
@@ -56,4 +56,36 @@
   z-index: 2;
   font-size: 17px;
   width: 100%;
+} */
+
+nav> .navbar .navbar-inverse{
+  background-color: #3a3a3a;
+}
+
+.navbar-right {
+  float: right !important;
+  margin-right: -15px;
+  font-weight: 700;
+}
+
+.navbar {
+  background-color: #444!important;
+  border-color: #444!important;
+  margin-bottom: 0!important;
+  border-radius: 0!important;
+  font-family: poppins,Open Sans,sans-serif!important;
+}
+
+.navbar-menu-item {
+  background-color: transparent!important;
+  color: #f7f2f2!important;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent!important;
+  line-height: 16px;
+}
+
+.dropdown-menu{
+  padding: 0!important;
+  margin-top: 0px;
+  clear: both;
 }

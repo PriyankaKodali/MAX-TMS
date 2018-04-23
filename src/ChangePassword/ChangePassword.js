@@ -17,7 +17,7 @@ class ChangePassword extends Component {
                         <img className="logo" src="Images/logo.png" alt="" />
                     </h3>
 
-                    <div className="form-group" style={{ paddingTop: '10px' }}>
+                    <div className="form-group">
                         <div className="input-group">
                             <span className="input-group-addon">
                                 <span className="glyphicon glyphicon-user"></span>
