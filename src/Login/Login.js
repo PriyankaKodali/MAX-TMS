@@ -58,11 +58,11 @@ class Login extends Component {
     handleSubmit(e) {
         e.preventDefault();
         toast.dismiss();
-        $(".loaderActivity").show();
+        $(".loader").show();
         $("button[name='submit']").hide();
 
         if (!ValidateForm(e)) {
-            $(".loaderActivity").hide();
+            $(".loader").hide();
             $("button[name='submit']").show();
             return false;
         }
@@ -82,9 +82,9 @@ class Login extends Component {
                     sessionStorage.setItem("roles", data["roles"]);
                     sessionStorage.setItem("displayName", data["displayName"]);
                     sessionStorage.setItem("userName", data["userName"]);
-                    sessionStorage.setItem("OrgId", data["OrgId"]);
-                    sessionStorage.setItem("OrgName", data["OrgName"]);
-                    sessionStorage.setItem("EmpId", data["EmpId"]);
+                    sessionStorage.setItem("OrgId", data["orgId"]);
+                    sessionStorage.setItem("OrgName", data["orgName"]);
+                    sessionStorage.setItem("EmpId", data["empId"]);
 
                     if (data["roles"].indexOf("Admin") != -1 ) {
                         this.props.history.push("/TaskDashBoard");
@@ -97,7 +97,7 @@ class Login extends Component {
                 }
             ).fail(
                 (error) => {
-                    $(".loaderActivity").hide();
+                    $(".loader").hide();
                     $("button[name='submit']").show();
                     if (error.responseJSON) {
                         toast(error.responseJSON.error_description, {
@@ -122,7 +122,7 @@ class Login extends Component {
                 type: toast.TYPE.ERROR,
                 autoClose: false
             });
-            $(".loaderActivity").hide();
+            $(".loader").hide();
             $("button[name='submit']").show();
             return false;
         }

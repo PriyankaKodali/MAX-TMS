@@ -24,37 +24,40 @@ class App extends Component {
     render() {
         var roles = sessionStorage.getItem("roles");
         return (
+
+
             <div >
                 {
-                    <nav className="navbar navbar-default">
-                        <div className="container-fluid">
-                            <div className="navbar-header">
-                                <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-                                    <span className="icon-bar"></span>
-                                    <span className="icon-bar"></span>
-                                    <span className="icon-bar"></span>
-                                </button>
+                    window.isLoggedIn ?
+                        <nav className="navbar navbar-default">
+                            <div className="container-fluid">
+                                <div className="navbar-header">
+                                    <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                                        <span className="icon-bar"></span>
+                                        <span className="icon-bar"></span>
+                                        <span className="icon-bar"></span>
+                                    </button>
+                                </div>
+                                <div className="collapse navbar-collapse" id="myNavbar">
+
+                                    <ul className="nav navbar-nav navbar-right navbar-menu" >
+                                        <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/TaskDashBoard") }} >Dashboard</a></li>
+                                        <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/Task") }} > Create Task</a></li>
+
+                                        <li className="dropdown pointer">
+                                            <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown">{"Hi " + sessionStorage.getItem("displayName")}<span className="caret"></span></a>
+                                            <ul className="dropdown-menu">
+                                                <li><a onClick={() => this.props.history.push("/ChangePassword")}>Change Password</a></li>
+                                                <li><a onClick={this.logoutClick.bind(this)}>Logout</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+
+                                </div>
                             </div>
-                            <div className="collapse navbar-collapse" id="myNavbar">
-
-                                <ul className="nav navbar-nav navbar-right navbar-menu" >
-                                    <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/TaskDashBoard") }} >Dashboard</a></li>
-                                    <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/Task") }} > Create Task</a></li>
-
-                                    <li className="dropdown pointer">
-                                        <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown">{"Hi " + sessionStorage.getItem("displayName")}<span className="caret"></span></a>
-                                        <ul className="dropdown-menu">
-                                            <li><a onClick={() => this.props.history.push("/ChangePassword")}>Change Password</a></li>
-                                            <li><a onClick={this.logoutClick.bind(this)}>Logout</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-
-                            </div>
-                        </div>
-                    </nav>
-
-
+                        </nav>
+                        :
+                        <div />
                 }
                 {this.props.children}
             </div>
