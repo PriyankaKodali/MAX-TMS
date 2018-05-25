@@ -86,14 +86,8 @@ class Login extends Component {
                     sessionStorage.setItem("OrgName", data["orgName"]);
                     sessionStorage.setItem("EmpId", data["empId"]);
 
-                    if (data["roles"].indexOf("Admin") != -1 ) {
-                        this.props.history.push("/TaskDashBoard");
-                        return;
-                    }
-                    else {
-                        this.props.history.push("/TaskDashBoard");
-                        return;
-                    }
+                    this.props.history.push("/TaskDashBoard");
+
                 }
             ).fail(
                 (error) => {
@@ -115,7 +109,7 @@ class Login extends Component {
                 }
             )
 
-            console.log(data["roles"]);
+         //   console.log(sessionStorage.getItem("roles"));
         }
         catch (e) {
             toast("An error occoured, please try again!", {

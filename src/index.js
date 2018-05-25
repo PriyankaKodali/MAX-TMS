@@ -18,6 +18,9 @@ import Login from './Login/Login';
 import ForgotPassword from './ForgotPassword/ForgotPassword';
 import ChangePassword from './ChangePassword/ChangePassword';
 
+// import Estimates from './Estimates/Estimates';
+// import SalesOrder from './SalesOrder/SalesOrder';
+// import PurchaseOrder from './PurchaseOrder/PurchaseOrder';
 
 import 'froala-editor/js/froala_editor.pkgd.min.js';
 
@@ -25,6 +28,9 @@ import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput/js/plugins/purify.min.js';
 import 'bootstrap-fileinput/js/fileinput.js';
 import 'bootstrap-fileinput/themes/explorer/theme.js';
+import MIMICUser from './MIMICUser/MIMICUser';
+import Report from './Reports/Report';
+
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
@@ -38,14 +44,17 @@ ReactDOM.render((
             <App>
                 <Route exact path="/" component={Login} />
                 <Route exact path="/Login" component={Login} />
-                {/* <Route exact path="/Task" component={Task} />
-                <Route exact path="/TaskDashBoard" component={TaskDashBoard} />
-                <Route exact path="/ViewTask" component={ViewTask} /> */}
-                <Route exact path="/Task" render={(nextState) => requireAuth(nextState, <Task location={nextState.location} history={nextState.history} match={nextState.match} />)} />
-                <Route exact path="/TaskDashBoard" render={(nextState) => requireAuth(nextState, <TaskDashBoard location={nextState.location} history={nextState.history} match={nextState.match} />)} />
-                <Route exact path="/ViewTask" render={(nextState) => requireAuth(nextState, <ViewTask location={nextState.location} history={nextState.history} match={nextState.match} />)} />
                 <Route exact path="/ForgotPassword" component={ForgotPassword} />
                 <Route exact path="/ChangePassword" render={(nextState) => requireAuth(nextState, <ChangePassword location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/Task" render={(nextState) => requireAuth(nextState, <Task location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/TaskDashBoard/:id" render={(nextState) => requireAuth(nextState, <TaskDashBoard location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/TaskDashBoard/" render={(nextState) => requireAuth(nextState, <TaskDashBoard location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/ViewTask" render={(nextState) => requireAuth(nextState, <ViewTask location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/MIMICUser" render={(nextState) => requireAuth(nextState, <MIMICUser location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                <Route exact path="/Report" render={(nextState) => requireAuth(nextState, <Report location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+                {/* <Route exact path="/Estimates" component={Estimates} />
+                <Route exact path='/SalesOrder' component={SalesOrder} />
+                <Route exact path="/PurchaseOrder" component={PurchaseOrder} /> */}
             </App>
         </div>
     </HashRouter>

@@ -94,7 +94,8 @@ class ChangePassword extends Component {
             (error) => {
                 this.setState({ error: error.responseJSON[0] });
                 toast(error.responseJSON[0], {
-                    type: toast.TYPE.ERROR
+                    type: toast.TYPE.ERROR,
+                    autoClose: false
                 });
                 $(".loader").hide();
                 $("button[type='submit']").show();

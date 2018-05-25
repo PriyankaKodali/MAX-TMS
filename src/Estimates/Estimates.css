@@ -1,0 +1,81 @@
+.ContainerStyle{
+    padding: 10px;
+    /* border: 1pt solid #cccbcb; */
+    float: left;
+    background: #f7f7f7;
+    margin-bottom: 9px;
+    /* border-radius: 7px; */
+}
+
+.mTop10{
+    margin-top: 10px ;
+}
+.formstyle{
+    padding: 10px;
+}
+
+
+.items-table td{
+    border-top:none!important; 
+  }
+  .items-table tr:nth-child(odd){
+    border-top: 1pt solid #ddd!important;
+  }
+  
+  .items-table{
+    margin-bottom: 0!important;
+  }
+  .items-table input[type="checkbox"]{
+    margin: 10px 0;
+  }
+
+  .itemsBlock{
+    /* padding: 10px;
+    border: 1pt solid #b7b7b7;
+    float: left;
+    border-radius: 7px; */
+  }
+
+  .text-success {
+    color: white;
+    padding-left: 8px;
+    padding-right: 16px;
+    padding-bottom: 3px;
+    padding-top: 4px;
+}
+
+.text-danger {
+    color: white;
+    padding-left: 8px;
+    padding-right: 16px;
+    padding-bottom: 3px;
+    padding-top: 4px;
+}
+ 
+.colxs1{
+    width: 5.333333%
+}
+
+.formtextArea{
+    margin: 0px;
+     width: 674px;
+      height: 77px;
+      resize: vertical;
+}
+
+.mLeft5{
+    margin-left: 1%;
+}
+
+.table > tbody > tr > td {
+    line-height: 1;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    padding-top: 6px;
+    padding-bottom: 4px;
+}
+
+.txtRight{
+    text-align: right;
+
+}

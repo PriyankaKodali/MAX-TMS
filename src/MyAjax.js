@@ -10,7 +10,6 @@ var MyAjax = (url, success, error, type, data) => {
         data: data,
         headers: { "Authorization": "Bearer " + sessionStorage.getItem("access_token") }
     })
-
 };
 
 var MyAjaxForAttachments = (url, success, error, type, data) => {

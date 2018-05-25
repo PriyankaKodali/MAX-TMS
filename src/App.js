@@ -21,11 +21,17 @@ class App extends Component {
         window.open("/", "_self")
     }
 
+    addNewClick(e) {
+        e.preventDefault();
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("roles");
+        window.isLoggedIn = false;
+        window.open("http://maxmaster.azurewebsites.net", "_self")
+    }
+
     render() {
         var roles = sessionStorage.getItem("roles");
         return (
-
-
             <div >
                 {
                     window.isLoggedIn ?
@@ -41,9 +47,33 @@ class App extends Component {
                                 <div className="collapse navbar-collapse" id="myNavbar">
 
                                     <ul className="nav navbar-nav navbar-right navbar-menu" >
-                                        <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/TaskDashBoard") }} >Dashboard</a></li>
-                                        <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/Task") }} > Create Task</a></li>
 
+
+                                        {
+                                            window.isLoggedIn && roles.indexOf("Admin") != -1 || window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                <li><a className="pointer navbar-menu-item" onClick={this.addNewClick.bind(this)} >Add New</a></li>
+                                                :
+                                                ""
+                                        }
+
+                                        <li className="dropdown pointer">
+                                            <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown"> Task Tracker <span className="caret"></span> </a>
+                                            <ul className="dropdown-menu">
+                                                <li><a onClick={() => { this.props.history.push("/TaskDashBoard") }} > My Dashboard</a></li>
+                                                {
+                                                    window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                       
+                                                            <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a> 
+                                                            <a onClick={() => { this.props.history.push("/Report") }} >Reports</a></li>
+                                                      
+                                                        :
+                                                        <li />
+                                                }
+
+                                            </ul>
+                                        </li>
+
+                                        <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/Task") }} > Create Task</a></li>
                                         <li className="dropdown pointer">
                                             <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown">{"Hi " + sessionStorage.getItem("displayName")}<span className="caret"></span></a>
                                             <ul className="dropdown-menu">

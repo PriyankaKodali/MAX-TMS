@@ -68,9 +68,17 @@ nav> .navbar .navbar-inverse{
   font-weight: 700;
 }
 
-.navbar {
+/* .navbar {
   background-color: #444!important;
   border-color: #444!important;
+  margin-bottom: 0!important;
+  border-radius: 0!important;
+  font-family: poppins,Open Sans,sans-serif!important;
+} */
+
+.navbar {
+  background-color: #4f5e6b!important;
+  border-color: #4f5e6b!important;
   margin-bottom: 0!important;
   border-radius: 0!important;
   font-family: poppins,Open Sans,sans-serif!important;
