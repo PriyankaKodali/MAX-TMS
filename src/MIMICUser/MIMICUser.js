@@ -22,7 +22,7 @@ class MIMICUser extends Component {
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId");
 
         MyAjax(
-            ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?UserId=" + '' + "&OrgId=" + orgId,
+            ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + '' + "&OrgId=" + orgId,
             (data) => { this.setState({ Employees: data["employees"] }) },
             (error) => toast(error.responseText, {
                 type: toast.TYPE.ERROR
@@ -81,7 +81,7 @@ class MIMICUser extends Component {
             showErrorsForInput(this.refs.employee.wrapper, null);
             this.props.history.push("/TaskDashboard/" + this.state.Employee.value);
 
-             // alert(this.state.Employee.value);
+            // alert(this.state.Employee.value);
         }
 
     }

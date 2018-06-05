@@ -7,3 +7,52 @@
     border-spacing: white;
     height: 10px;
 }
+
+.mytable {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 0px;
+    font-size: 13px;
+}
+
+.Reportpanel-body {
+    padding: 1px;
+}
+
+.SearchContainerStyle{
+    padding: 0px;
+    float: left;
+    background: #e8e8e8;;
+    margin-bottom: 8px;
+}
+
+.mleft10{
+    margin-left: 10px;
+}
+.panelHeading{
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mleft1{
+    margin-left: 2%; 
+}
+
+.messageStyle{
+    border-style: dotted;
+    padding: 10px;
+    color: rgb(20, 95, 20);
+}
+
+.trStyleDelay{
+   background-color :rgb(248, 232, 232)
+}
+
+.trStyleSuccess{
+    background-color: rgb(220, 238, 220)
+}
+
+.actionTable > tbody>tr>th{
+    background: #526b77;
+    color: white;
+}

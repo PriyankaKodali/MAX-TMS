@@ -101,3 +101,7 @@ display: block!important;
   .navbar-inverse {
     background-color: #efefef;
   }
+
+  .trStatusSuccess{
+    background-color: rgb(221, 245, 219) !important
+  }

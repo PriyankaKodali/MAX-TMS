@@ -64,7 +64,7 @@ class ForgotPassword extends Component {
             Email: this.refs.email.value
         };
 
-          let url = ApiUrl + "api/Account/ForgotPassword?email=" + this.refs.email.value;
+          let url = ApiUrl + "/api/Account/ForgotPassword?email=" + this.refs.email.value;
         $.get(url).then((data) => {
             toast("Please check your registered email!", {
                 type: toast.TYPE.SUCCESS

@@ -251,3 +251,13 @@ padding-top: 11px;
 .backBtn {
     width: 5.333333%;
 }
+
+
+.react-bs-table table td:hover {
+    overflow-wrap: break-word;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    padding-bottom: 0.1%;
+  }

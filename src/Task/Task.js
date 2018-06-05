@@ -64,7 +64,7 @@ class Task extends Component {
 
 
         MyAjax(
-            ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?UserId=" + '' + "&OrgId=" + orgId,
+            ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + '' + "&orgId=" + orgId,
             (data) => { this.setState({ Assignees: data["employees"] }) },
             (error) => toast(error.responseText, {
                 type: toast.TYPE.ERROR
