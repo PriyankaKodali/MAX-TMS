@@ -1,25 +1,18 @@
 import React, { Component } from 'react';
-import './TaskDashBoard.css';
-//import RichTextEditor from 'react-rte';
 import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
 import $ from 'jquery';
 import Select from 'react-select';
 import { ApiUrl } from '.././Config.js';
-//import FroalaEditor from 'react-froala-wysiwyg';
 import { toast } from 'react-toastify';
 import { MyAjaxForAttachments, MyAjax } from '../MyAjax.js';
-import { EditorState, convertToRaw, ContentState } from 'draft-js';
+import { EditorState, convertToRaw, ContentState, convertFromHTML } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { validate } from 'validate.js'
+import './TaskDashBoard.css';
 
 var moment = require('moment');
-
-// Require Editor CSS files.
-//import 'froala-editor/css/froala_style.min.css';
-//import 'froala-editor/css/froala_editor.pkgd.min.css';
-
 
 class ViewTask extends Component {
 
@@ -34,7 +27,7 @@ class ViewTask extends Component {
             ActionTypes: [], ActionType: null, TaskInfo: [], TaskLog: [], user: "", DescriptionHtml: "",
             Description: EditorState.createEmpty(), IsDisabled: false, budgetedHoursDisabled: true, ActivityLog: [], EndDate: "",
             BudgetedHours: '', showHoursWorked: false, maxBudgetedHours: '', isAcknowledged: false,
-            AssignedBy: null, TaskOwner: null, TaskId: null, Status: null, EmpId: null
+            AssignedBy: null, TaskOwner: null, TaskId: null, Status: null, EmpId: null, TimeUnit: null
         }
     }
 
@@ -112,6 +105,15 @@ class ViewTask extends Component {
             this.props.history.push("/TaskDashBoard");
         }
 
+
+        $(document).ready(function () {
+            $("input, textarea").on("keypress", function (e) {
+                if (e.which === 32)
+                    e.preventDefault();
+            });
+        });
+
+
     }
 
     componentDidMount() {
@@ -159,7 +161,7 @@ class ViewTask extends Component {
                             </tr>
                             <tr>
                                 <th>Created On</th>
-                                <td>{this.state.TaskInfo["TaskDate"]}</td>
+                                <td>{moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}</td>
                             </tr>
                             <tr>
                                 <th>Assigned To </th>
@@ -183,7 +185,7 @@ class ViewTask extends Component {
 
                             <tr>
                                 <th>Assigned Date</th>
-                                <td> {this.state.TaskInfo["TaskDate"]}  </td>
+                                <td> {moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}  </td>
                             </tr>
 
                         </tbody>
@@ -199,8 +201,26 @@ class ViewTask extends Component {
                             </tr>
                             <tr>
                                 <th style={{ width: '20px' }} >Description</th>
-                                <td>  {this.state.TaskInfo["Description"]}  </td>
+                                {/* <td>  {this.state.TaskInfo["Description"]}  </td> */}
+
+                                <td>
+                                    <Editor name="actionResponse" readonly={true} id="actionResponse"
+                                        editorState={this.getDescription(this.state.TaskInfo["Description"])} toolbarClassName="hide-toolbar"
+                                        wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
+                                    />
+                                </td>
                             </tr>
+
+                                {
+                                    this.state.TaskInfo["TaskType"] === "Client" ?
+                                        <tr >
+                                            <th style={{ width: '20px' }}> Location </th>
+                                            <td > {this.state.TaskInfo["Location"]} </td>
+                                        </tr>
+                                        :
+                                        ""
+                                }
+                            
                         </tbody>
                     </table>
                 </div>
@@ -211,11 +231,11 @@ class ViewTask extends Component {
                     <table className="table table-condensed table-bordered actionTable mytable">
                         <tbody>
                             <tr>
-                                <th style={{ width: '13.5%' }}> Task Date</th>
-                                <th > Assigned By</th>
+                                <th > Task Date</th>
+                                <th> Assigned By</th>
                                 <th ></th>
-                                <th colspan={2}> Action/ Response</th>
-                                <th>Assigned To</th>
+                                <th colspan={2} style={{ width: '50%' }}> Action/ Response</th>
+                                <th  >Assigned To</th>
                                 <th > Status </th>
                                 <th >Hours Worked </th>
                             </tr>
@@ -223,9 +243,9 @@ class ViewTask extends Component {
                                 this.state.TaskLog.map((ele, i) => {
                                     return (
                                         <tr key={i}>
-                                            <td> {(ele["TaskDate"])}</td>
-                                            <td> {ele["AssignedBy"]} </td>
-                                            <td>  {
+                                            <td > <p> {moment(ele["TaskDate"]).format("DD-MMM-YYYY h:mm a")} </p>  </td>
+                                            <td > {ele["AssignedBy"]} </td>
+                                            <td >  {
                                                 ele["Attachments"] != null ?
                                                     ele["Attachments"].map((el) => {
                                                         return (
@@ -236,8 +256,15 @@ class ViewTask extends Component {
                                                     ""
                                             }
                                             </td>
-                                            <td colspan={2}>{ele["Description"]}</td>
-                                            <td> {ele["AssignedTo"]}</td>
+                                            {/* <td colspan={2}>{ele["Description"]}</td> */}
+                                            <td colspan={2} style={{ paddingTop: '1px' }}>
+                                                <Editor name="actionResponse" readonly={true} id="actionResponse"
+                                                    editorState={this.gotoChangeContent(ele["Description"])} toolbarClassName="hide-toolbar"
+                                                    wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
+                                                />
+                                            </td>
+
+                                            <td > {ele["AssignedTo"]}</td>
                                             <td> {ele["Status"]}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 {ele["HoursWorked"] > 0 ?
@@ -253,7 +280,6 @@ class ViewTask extends Component {
                         </tbody>
                     </table>
                 </div>
-
 
                 <div className="col-xs-12" style={{ marginTop: '1%' }}>
 
@@ -283,7 +309,7 @@ class ViewTask extends Component {
                                                                     <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
                                                                         options={[{ value: "AcceptToClose", label: "Accept To Close" }]} onChange={this.ActionTypeChanged.bind(this)} />
                                                                     :
-                                                                    this.state.Status === "Resolved" ?
+                                                                    this.state.Status === "Resolved" || this.state.Status == "Reopened" ?
                                                                         <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
                                                                             options={[{ value: "AcceptToClose", label: "Accept To Close" }, { value: "Reopen", label: "Reopen" }]} onChange={this.ActionTypeChanged.bind(this)} />
                                                                         :
@@ -414,9 +440,25 @@ class ViewTask extends Component {
                                                         </div>
                                                     </div>
 
+                                                    {/* <div className="col-md-4 form-group" style={{ width: '28%' }} >
+                                                        <div className="col-md-6">
+                                                            <label> Hours(worked) </label>
+                                                            <input className="col-md-5 form-control" name="HrsWorked" type="number" min="0" max="10" ref="hours" autoComplete="off" />
+                                                          
+                                                        </div>
+
+
+                                                        <div className="col-md-6" >
+                                                            <label> Minutes(worked) </label>
+                                                            <input className="form-control" name="MinWorked" type="number" min="0" max="60" ref="minutes" autoComplete="off" />
+                                                        </div>
+
+                                                        <p type="hidden" id="workedhours" ref="errorInfo" name="errorInfo" />
+                                                    </div> */}
+
                                                     {
                                                         this.state.showHoursWorked ?
-                                                            <div className="col-md-3 form-group" style={{ width: '26%' }}>
+                                                            <div className="col-md-3 form-group" style={{ width: '20%' }}>
                                                                 <label> Previously worked hours </label>
                                                                 <input className="form-control" disabled="true" name="previouslyWorkedHours" value={this.state.HoursWorked} />
                                                             </div>
@@ -437,7 +479,7 @@ class ViewTask extends Component {
                                                         <label> Action  </label>
                                                         <div className="form-group" style={{ height: "auto" }}>
                                                             <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
-                                                            <input hidden ref="description" name="forErrorShowing" />
+                                                            <input type="hidden" id="desc" ref="description" name="forErrorShowing" />
                                                         </div>
                                                     </div>
                                                     <div className="col-xs-12">
@@ -461,8 +503,34 @@ class ViewTask extends Component {
                             : <div />
                     }
                 </div>
+
             </div>
         )
+    }
+    getDescription(desc) {
+        if (this.state.TaskInfo.Description !== undefined) {
+            var contentBlock = this.state.TaskInfo["Description"];
+            if (contentBlock) {
+                const editorState = EditorState.createWithContent(ContentState.createFromBlockArray(
+                    convertFromHTML(contentBlock)
+                ));
+                return editorState;
+            }
+        }
+        else {
+            const editor = EditorState.createEmpty();
+            return editor;
+        }
+    }
+
+
+    gotoChangeContent(content) {
+        const contentBlock = convertFromHTML(content);
+        if (contentBlock) {
+            const contentState = ContentState.createFromBlockArray(contentBlock);
+            const editorState = EditorState.createWithContent(contentState);
+            return editorState;
+        }
     }
 
     uploadCallback(file) {
@@ -482,6 +550,7 @@ class ViewTask extends Component {
             showErrorsForInput(this.refs.action.wrapper, ["Please select action type"]);
         }
     }
+
 
     handleModelChange(model) {
         this.setState({ model: model });
@@ -547,16 +616,19 @@ class ViewTask extends Component {
             data.append("budgetedHours", this.refs.budgetedhours.value);
             data.append("edos", this.refs.dos.value);
             data.append("edoc", this.refs.doc.value);
+
             data.append("hoursWorked", this.refs.hoursWorked.value);
         }
 
         if (this.state.ActionType.value === "Resolved") {
+
             data.append("hoursWorked", this.refs.hoursWorked.value)
         }
 
         var files = $("#input-id").fileinput("getFileStack");
 
         for (var i = 0; i < files.length; i++) {
+
             if (files[i] != undefined) {
                 data.append(files[i].filename, files[i]);
             }
@@ -712,7 +784,16 @@ class ViewTask extends Component {
                         isSubmit = false;
                     }
                 }
+                else if (this.refs.hoursWorked.value == 0) {
+                    success = false;
+                    showErrorsForInput(this.refs.hoursWorked, ["should be greater than 0"]);
+                    if (isSubmit) {
+                        this.refs.hoursWorked.focus();
+                        isSubmit = false;
+                    }
+                }
                 else if (this.refs.hoursWorked.value > 10) {
+
                     success = false;
                     showErrorsForInput(this.refs.hoursWorked, ["should be less than 10"]);
                     if (isSubmit) {
@@ -725,8 +806,13 @@ class ViewTask extends Component {
                 }
             }
 
+        }
 
-            if (!this.state.Description.getCurrentContent().hasText()) {
+
+        var content = this.state.Description.getCurrentContent();
+
+        if (success) {
+            if (!content.getPlainText('').trim().length > 0) {
                 showErrorsForInput(this.refs.description, ["Please enter action description"]);
                 success = false;
                 if (isSubmit) {
@@ -738,8 +824,45 @@ class ViewTask extends Component {
                 showErrorsForInput(this.refs.description, []);
             }
         }
-
+        
         return success;
     }
 }
 export default ViewTask;
+
+
+
+// if (this.state.isAcknowledged) {
+//     if (this.refs.hours.value === "" && this.refs.minutes.value === "") {
+//         success = false;
+//         showErrorsForInput(this.refs.errorInfo, ["Enter the duration worked in hours or minutes"]);
+//         if (isSubmit) {
+//             isSubmit = false;
+//         }
+//     }
+
+//     else if (this.refs.hours.value !== "" && this.refs.hours.value > 10) {
+//         success = false;
+//         showErrorsForInput(this.refs.hours, ["Hours should be less than 10 "])
+//         if (isSubmit) {
+//             this.refs.hours.focus();
+//             isSubmit = false;
+//         }
+//     }
+
+//     else if (this.refs.minutes.value !== "" && this.refs.minutes.value > 60) {
+//         success = false;
+//         showErrorsForInput(this.refs.minutes, ["Minutes should be less than 60 "])
+//         if (isSubmit) {
+//             this.refs.minutes.focus();
+//             isSubmit = false;
+//         }
+//     }
+
+//     else {
+//         showErrorsForInput(this.refs.errorInfo, []);
+//         showErrorsForInput(this.refs.hours, []);
+//         showErrorsForInput(this.refs.minutes, []);
+//     }
+
+// }

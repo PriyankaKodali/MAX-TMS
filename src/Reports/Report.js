@@ -7,6 +7,10 @@ import { toast } from 'react-toastify';
 import { MyAjax } from '.././MyAjax.js';
 import validate from 'validate.js';
 import './Report.css';
+import { EditorState, convertToRaw, ContentState, convertFromHTML } from 'draft-js';
+import draftToHtml from 'draftjs-to-html';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
 var moment = require('moment');
 var ReactBSTable = require('react-bootstrap-table');
@@ -18,7 +22,7 @@ class Report extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            Employee: null, Employees: [], EmployeeReport: false, dataTotalSize: null, Client: null,
+            Employee: '', Employees: [], EmployeeReport: false, dataTotalSize: null, Client: '',
             Clients: [], EmployeesList: [], EmployeeTaskReport: [], FromDate: moment().startOf('week').add('d', 1).format("YYYY-MM-DD"),
             ToDate: moment().format("YYYY-MM-DD"), Priority: null, Status: '', SearchClick: false,
             EmpTasksReport: [], EmployeeName: null, RecordsAvailable: true, TotalCount: null, TaskPriority: null,
@@ -30,23 +34,28 @@ class Report extends Component {
 
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
 
-        MyAjax(
-            ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + '' + "&orgId=" + orgId,
-            (data) => { this.setState({ Employees: data["employees"] }) },
-            (error) => toast(error.responseText, {
-                type: toast.TYPE.ERROR
-            })
-        )
+        // MyAjax(
+        //     ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + '' + "&orgId=" + orgId,
+        //     (data) => { this.setState({ Employees: data["employees"] }) },
+        //     (error) => toast(error.responseText, {
+        //         type: toast.TYPE.ERROR
+        //     })
+        // )
 
         $.ajax({
-            url: ApiUrl + "/api/MasterData/GetClients?orgId=" + orgId,
+            url: ApiUrl + "/api/MasterData/GetAllEmployeesWithAspNetUserId?orgId=" + orgId,
+            type: "get",
+            success: (data) => { this.setState({ Employees: data["employees"] }) }
+        })
+
+        $.ajax({
+            url: ApiUrl + "/api/MasterData/GetClientsWithAspNetUserId?orgId=" + orgId,
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
-
         })
 
         var url = ApiUrl + "/api/Activities/GetEmployeesReport?empId=" + this.state.Employee +
-            "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
+            "&fromDate=" + moment(this.state.FromDate).format("YYYY-MM-DD") + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
             "&priority=" + this.state.Priority + "&status=" + this.state.Status
         MyAjax(
             url,
@@ -61,7 +70,6 @@ class Report extends Component {
                     else {
                         this.setState({ RecordsAvailable: false })
                     }
-
                     //  console.log(this.state.EmployeeTaskReport[0]["HoursWorked"])
                 })
             },
@@ -185,38 +193,38 @@ class Report extends Component {
                                                         <table className="table table-condensed table-bordered actionTable mytable">
                                                             <tbody>
                                                                 <tr >
-                                                                    <th> TaskId</th>
-                                                                    <th> TaskDate </th>
+                                                                    <th style={{ width: '7%' }} > TaskId</th>
+                                                                    <th style={{ width: '7%' }}> TaskDate </th>
                                                                     <th title="Client/Department">Client/Dept</th>
                                                                     <th> AssignedBy </th>
                                                                     <th> Priority </th>
                                                                     <th> Subject</th>
-                                                                    <th data-toggle="tooltip" title="Expected Date Of Closure"> EDOC </th>
+                                                                    <th data-toggle="tooltip" title="Expected Date Of Closure" style={{ width: '7%' }}> EDOC </th>
                                                                     <th> Task Owner </th>
                                                                     <th> Pending With</th>
                                                                     <th> Status </th>
-                                                                    <th data-toggle="tooltip" title="Hours Worked"> HW </th>
-                                                                    <th data-toggle="tooltip" title="Completed Date"> CD </th>
-                                                                    <th title="TAT(in Days)"> TAT </th>
+                                                                    <th style={{ textAlign: 'center' }} data-toggle="tooltip" title="Hours Worked"> HW </th>
+                                                                    <th data-toggle="tooltip" title="Completed Date" style={{ width: '7%' }}> CD </th>
+                                                                    <th style={{ textAlign: 'center' }} title="TAT(in Days)"> TAT </th>
                                                                 </tr>
                                                                 {
                                                                     this.state.EmployeeTaskReport.map((e, j) => {
                                                                         if (e["AssignedToId"] == ele["AssignedTo"]) {
                                                                             return (
                                                                                 <tr style={{ paddingLeft: '2%' }} className={this.getTaskStyle(e["EDOC"], e["CompletedDate"], e["Status"])} key={j} onClick={() => { this.handleClick(ele["AssignedTo"], ele["Employee"], e["TaskId"], e["Status"]) }}>
-                                                                                    <td> {e["TaskId"]} </td>
-                                                                                    <td> {moment(e["CreatedDate"]).format("DD-MMM-YYYY")} </td>
+                                                                                    <td style={{ width: '6%' }}> {e["TaskId"]} </td>
+                                                                                    <td style={{ width: '7%' }}> {moment(e["CreatedDate"]).format("DD-MMM-YYYY")} </td>
                                                                                     <td> {e["Department"] !== null ? e["Department"] : e["ClientName"]}</td>
                                                                                     <td> {e["CreatedBy"]} </td>
                                                                                     <td> {e["Priority"] == "0" ? "High" : e["Priority"] == "1" ? "Medium" : "Low"} </td>
                                                                                     <td > {e["Subject"]} </td>
-                                                                                    <td> {moment(e["EDOC"]).format("DD-MMM-YYYY")} </td>
+                                                                                    <td style={{ width: '7%' }}> {moment(e["EDOC"]).format("DD-MMM-YYYY")} </td>
                                                                                     <td> {e["TaskOwner"]} </td>
                                                                                     <td> {e["Status"] == "Closed" ? "" : e["TaskOwner"]} </td>
                                                                                     <td> {e["Status"]}</td>
-                                                                                    <td> {e["HoursWorked"] > 0 ? e["HoursWorked"] : " "}</td>
-                                                                                    <td > {e["CompletedDate"] != null ? moment(e["CompletedDate"]).format("DD-MMM-YYYY") : " "}   </td>
-                                                                                    <td style={{ color: 'red' }}>{this.DelayInDaysCount(e["EDOC"], e["CompletedDate"], e["TaskResolvedDate"], e["Status"])}   </td>
+                                                                                    <td style={{ textAlign: 'center' }}> {e["HoursWorked"] > 0 ? e["HoursWorked"] : " "}</td>
+                                                                                    <td style={{ width: '7%' }}> {e["CompletedDate"] != null ? moment(e["CompletedDate"]).format("DD-MMM-YYYY") : " "}   </td>
+                                                                                    <td style={{ color: 'red', textAlign: 'center' }}>{this.DelayInDaysCount(e["EDOC"], e["CompletedDate"], e["TaskResolvedDate"], e["Status"])}   </td>
                                                                                 </tr>
                                                                             )
                                                                         }
@@ -241,7 +249,7 @@ class Report extends Component {
                         :
 
                         <div className="col-xs-12 messageStyle">
-                            <h4> No records found for </h4>
+                            <h4> No records found </h4>
                         </div>
                 }
 
@@ -260,7 +268,7 @@ class Report extends Component {
                                     {
                                         this.state.EmpTasksReport.map((ele, i) => {
                                             return (
-                                                <div>
+                                                <div >
                                                     <h4 className="col-xs-12"> Task {ele["TaskId"]} Details : </h4>
 
                                                     <table className="table table-condensed table-bordered actionTable mytable">
@@ -277,8 +285,26 @@ class Report extends Component {
                                                                 <td>  {moment(ele["CreatedDate"]).format("DD-MMM-YYYY")} </td>
                                                                 <td> {ele["Department"] !== null ? ele["Department"] : ele["ClientName"]} </td>
                                                                 <td> {ele["Subject"]} </td>
-                                                                <td> {ele["TaskDescription"]} </td>
+                                                                <td>
+                                                                    <Editor name="actionDescription" readonly={true} id="actionDescription"
+                                                                        editorState={this.gotoChangeDescription(ele["TaskDescription"])} toolbarClassName="hide-toolbar"
+                                                                        wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
+                                                                    />
+                                                                </td>
+                                                                {/* <td> {ele["TaskDescription"]} </td> */}
                                                             </tr>
+
+                                                            {
+                                                                ele["TaskType"] === "Client" ?
+                                                                    <tr>
+                                                                        <th style={{ width: '15%' }}> Location </th>
+                                                                        <td colspan={4}> {ele["Location"]} </td>
+                                                                    </tr>
+
+                                                                    :
+                                                                    ""
+                                                            }
+
                                                         </tbody>
                                                     </table>
                                                     <div className="col-xs-12" />
@@ -294,15 +320,21 @@ class Report extends Component {
                                                             </tr>
 
                                                             {
-                                                                ele["ActivityLog"].map((el) => {
+                                                                ele["ActivityLog"].map((el, j) => {
                                                                     return (
-                                                                        <tr>
+                                                                        <tr key={el["Id"]} >
                                                                             <td> {moment(el["TaskCreatedDate"]).format("DD-MMM-YYYY hh:mm a")}</td>
                                                                             <td> {el["AssignedBy"]}</td>
-                                                                            <td>  {$("<div />").html(el["Description"]).text()} </td>
+                                                                            {/* <td>{el["Description"]}</td> */}
+                                                                            <td style={{ width: '50%', paddingTop: '0px' }}>
+                                                                                <Editor name="actionResponse" readonly={true} id="actionResponse"
+                                                                                    editorState={this.gotoChangeContent(el["Description"])} toolbarClassName="hide-toolbar"
+                                                                                    wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
+                                                                                />
+                                                                            </td>
                                                                             <td>  {el["Status"] == "Closed by assignee" ? " " : el["AssignedTo"]} </td>
                                                                             <td> {el["Status"]}</td>
-                                                                            <td> {el["HoursWorked"] > 0 ? el["HoursWorked"] : ""} </td>
+                                                                            <td style={{ textAlign: 'center' }}> {el["HoursWorked"] > 0 ? el["HoursWorked"] : ""} </td>
                                                                         </tr>
                                                                     )
 
@@ -318,15 +350,15 @@ class Report extends Component {
                                                                 <tbody>
                                                                     <tr>
                                                                         <th> Expected start Date </th>
-                                                                        <td>{ele["StatDate"] !== null ? moment(ele["StatDate"]).format("DD-MMM-YYYY") : ""}</td>
+                                                                        <td>{ele["StatDate"] !== null ? moment(ele["StatDate"]).format("DD-MMM-YYYY") : " "}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th>Expected Date of Closure</th>
-                                                                        <td>{ele["ExpectedClosureDate"] != null ? moment(ele["ExpectedClosureDate"]).format("DD-MMM-YYYY") : ""}</td>
+                                                                        <td>{ele["ExpectedClosureDate"] != null ? moment(ele["ExpectedClosureDate"]).format("DD-MMM-YYYY") : " "}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th>Budgeted Hours </th>
-                                                                        <td>{ele["BudgetedHours"]}</td>
+                                                                        <td>{ele["BudgetedHours"] !== null ? ele["BudgetedHours"] : ""}</td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
@@ -371,6 +403,30 @@ class Report extends Component {
         )
     }
 
+    gotoChangeContent(content) {
+
+        const contentBlock = convertFromHTML(content);
+        if (contentBlock.contentBlocks !== null) {
+            const contentState = ContentState.createFromBlockArray(contentBlock);
+            const editorState = EditorState.createWithContent(contentState);
+            return editorState;
+        }
+        else {
+            const editor = EditorState.createEmpty();
+            return editor;
+        }
+
+    }
+
+    gotoChangeDescription(description) {
+        const contentBlock = convertFromHTML(description);
+        if (contentBlock.contentBlocks !== null) {
+            const contentState = ContentState.createFromBlockArray(contentBlock);
+            const editorState = EditorState.createWithContent(contentState);
+            return editorState;
+        }
+    }
+
     handleClick(empId, empName, TaskId, status) {
         this.gotoEmployeeActivitiesReport(empId, empName, TaskId);
     }
@@ -410,7 +466,7 @@ class Report extends Component {
 
     DelayInDaysCount(edoc, completedDate, resolvedDate, status) {
 
-        if (resolvedDate != null) {
+        if (resolvedDate != null || status == "Resolved") {
             if (edoc < resolvedDate) {
                 var days = moment(resolvedDate).diff(moment(edoc), 'days');
                 if (days > 0) {
@@ -555,13 +611,13 @@ class Report extends Component {
 
     clearClick() {
         this.state.Priority = null;
-        this.state.Status = null;
-        this.state.Client = null;
-        this.state.Employee = null;
+        this.state.Status = '';
+        this.state.Client = '';
+        this.state.Employee = '';
         this.refs.fromDate.value = moment().startOf('week').add('d', 1).format("YYYY-MM-DD");
         this.refs.toDate.value = moment().format("YYYY-MM-DD");
         this.setState({
-            Priority: null, Status: '', Client: null, Employee: null
+            Priority: null, Status: '', Client: '', Employee: ''
         }, () => {
             this.GetEmployeeReport();
         })
@@ -581,7 +637,9 @@ class Report extends Component {
         $.ajax({
             url: url,
             type: "get",
-            success: (data) => { this.setState({ EmpTasksReport: data["empActivitiesReport"] }) }
+            success: (data) => {
+                this.setState({ EmpTasksReport: data["empActivitiesReport"] })
+            }
         })
 
         $("#employeeTasksReportModal").modal("show");

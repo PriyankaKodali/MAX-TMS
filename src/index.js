@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
-
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import { Router, Route, IndexRoute } from 'react-router';
@@ -21,12 +20,12 @@ import ResetPassword from './ResetPassword/ResetPassword';
 import MIMICUser from './MIMICUser/MIMICUser';
 import Report from './Reports/Report';
 
+
 import 'froala-editor/js/froala_editor.pkgd.min.js';
 import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput/js/plugins/purify.min.js';
 import 'bootstrap-fileinput/js/fileinput.js';
 import 'bootstrap-fileinput/themes/explorer/theme.js';
-
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
@@ -49,6 +48,7 @@ ReactDOM.render((
                 <Route exact path="/ViewTask" render={(nextState) => requireAuth(nextState, <ViewTask location={nextState.location} history={nextState.history} match={nextState.match} />)} />
                 <Route exact path="/MIMICUser" render={(nextState) => requireAuth(nextState, <MIMICUser location={nextState.location} history={nextState.history} match={nextState.match} />)} />
                 <Route exact path="/Report" render={(nextState) => requireAuth(nextState, <Report location={nextState.location} history={nextState.history} match={nextState.match} />)} />
+             
             </App>
         </div>
     </HashRouter>

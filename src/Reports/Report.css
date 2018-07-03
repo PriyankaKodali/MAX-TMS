@@ -56,3 +56,9 @@
     background: #526b77;
     color: white;
 }
+
+.responseDescription-editor-wrapper{
+    border: 0px solid #e4dede;
+    margin: 0.1em 0;
+    padding-top: 0px;
+}

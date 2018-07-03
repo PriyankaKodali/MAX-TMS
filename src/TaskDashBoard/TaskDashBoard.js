@@ -72,7 +72,7 @@ class TaskDashBoard extends Component {
         })
 
         $.ajax({
-            url: ApiUrl + "/api/MasterData/GetClients?orgId=" + orgId,
+            url: ApiUrl + "/api/MasterData/GetClientsWithAspNetUserId?orgId=" + orgId,
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
@@ -409,7 +409,7 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}>
 
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="12" dataSort={true} > TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="15" dataSort={true} > TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="17" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="EmpCreatedBy" dataAlign="left" width="16" dataSort={true} >Created By</TableHeaderColumn>

@@ -20,8 +20,6 @@ var moment = require('moment');
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
 
-
-
 class Task extends Component {
 
     constructor(props) {
@@ -44,16 +42,12 @@ class Task extends Component {
 
     componentWillMount() {
 
-        // var role = sessionStorage.getItem("roles").indexOf("Admin") != -1 ? true : false
-
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
 
-
         $.ajax({
-            url: ApiUrl + "/api/MasterData/GetClients?orgId=" + orgId,
+            url: ApiUrl + "/api/MasterData/GetClientsWithAspNetUserId?orgId=" + orgId,
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
-
         })
 
         $.ajax({
@@ -75,6 +69,13 @@ class Task extends Component {
     componentDidMount() {
 
         setUnTouched(document);
+
+        // $(document).ready(function () {
+        //     $("input, textarea").on("keypress", function (e) {
+        //         if (e.which === 32)
+        //             e.preventDefault();
+        //     });
+        // });
 
         $("#input-id").fileinput({
             theme: "explorer",
@@ -127,7 +128,6 @@ class Task extends Component {
 
                             {
                                 this.state.client === true ?
-
                                     <div>
                                         <div className="col-md-3">
                                             <label> Client</label>
@@ -141,7 +141,7 @@ class Task extends Component {
                                             </div>
                                         </div>
 
-                                        <div className="col-md-3">
+                                        <div className="col-md-4">
                                             <label> Project </label>
                                             <div className="form-group">
                                                 <div className="input-group">
@@ -157,6 +157,7 @@ class Task extends Component {
                                     <div />
 
                             }
+
                             {
                                 this.state.isOffcTask === true ?
                                     <div className="col-md-3">
@@ -219,7 +220,7 @@ class Task extends Component {
                                                 <span className="input-group-addon" >
                                                     <span className="glyphicon glyphicon-user"></span>
                                                 </span>
-                                                <Select className="form-control" name="category" ref="subcategory" placeholder="please select SubCategory" value={this.state.SubCategory} options={this.state.SubCategories} onChange={this.SubCategoryChanged.bind(this)} />
+                                                <Select className="form-control" name="category" ref="subcategory" placeholder="Select SubCategory" value={this.state.SubCategory} options={this.state.SubCategories} onChange={this.SubCategoryChanged.bind(this)} />
                                             </div>
                                         </div>
                                     </div>
@@ -376,13 +377,13 @@ class Task extends Component {
 
     }
 
-    // handleModelChange(model) {
+// handleModelChange(model) {
     //     this.setState({ model: model }, ()=>{
     //         console.log(this.state.model);  
     //     })
 
     //   $("froala-editor").editable('getText')
-    // }
+// }
 
     clientClicked() {
         this.setState({ client: true, isOffcTask: false, Client: '', Project: '' }, () => {
@@ -403,11 +404,11 @@ class Task extends Component {
 
     ClientChanged(val) {
         if (val) {
-            this.setState({ Client: val }, () => {
+            this.setState({ Client: val, Project: null, Projects: [] }, () => {
                 $.ajax({
-                    url: ApiUrl + "/api/MasterData/GetProjects?clientId=" + val.value,
+                    url: ApiUrl + "/api/Client/GetClientProjects?clientId=" + val.value,
                     type: "get",
-                    success: (data) => { this.setState({ Projects: data["projects"] }) }
+                    success: (data) => { this.setState({ Projects: data["clientProjects"] }) }
                 })
             })
             showErrorsForInput(this.refs.clientName.wrapper, null);
@@ -606,7 +607,7 @@ class Task extends Component {
         var isSubmit = e.type === "submit";
         var subject = this.refs.subject.value.trim();
         var doc = this.refs.edoc.value;
-        var desc = this.state.DescriptionHtml;
+        var desc = this.state.DescriptionHtml.trim();
 
         if (isSubmit) {
             $(e.currentTarget.getElementsByClassName('form-control')).map((i, el) => {
@@ -671,17 +672,6 @@ class Task extends Component {
             }
         }
 
-        if (!this.state.Assignee || !this.state.Assignee.value) {
-            success = false;
-            showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
-            if (isSubmit) {
-                this.refs.assignee.focus();
-                isSubmit = false;
-            }
-        }
-
-
-
         if (validate.single(doc, { presence: true }) !== undefined) {
             if (isSubmit) {
                 this.refs.edoc.focus();
@@ -706,17 +696,41 @@ class Task extends Component {
             showErrorsForInput(this.refs.subject, []);
         }
 
-        if (desc === "") {
-            showErrorsForInput(this.refs.description, ["Please enter action description"]);
+
+        if (!this.state.Assignee || !this.state.Assignee.value) {
             success = false;
+            showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
             if (isSubmit) {
-                this.refs.editor.focusEditor();
+                this.refs.assignee.focus();
                 isSubmit = false;
             }
         }
-        else {
-            showErrorsForInput(this.refs.description, []);
+
+        // if (desc === "") {
+        //     showErrorsForInput(this.refs.description, ["Please enter action description"]);
+        //     success = false;
+        //     if (isSubmit) {
+        //         this.refs.editor.focusEditor();
+        //         isSubmit = false;
+        //     }
+        // }
+
+        if (success) {
+            var content = this.state.Description.getCurrentContent();
+
+            if (!content.getPlainText('').trim().length > 0) {
+                showErrorsForInput(this.refs.description, ["Please enter action description"]);
+                success = false;
+                if (isSubmit) {
+                    this.refs.editor.focusEditor();
+                    isSubmit = false;
+                }
+            }
+            else {
+                showErrorsForInput(this.refs.description, []);
+            }
         }
+
         return success;
     }
 }

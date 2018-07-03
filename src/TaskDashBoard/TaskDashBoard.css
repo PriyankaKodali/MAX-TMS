@@ -116,9 +116,9 @@
 }
 
 .mytable > tr > td{
-background: rgb(215, 233, 243);
-border-spacing: pink;
-height: 10px;
+ background: rgb(215, 233, 243);
+ border-spacing: pink;
+ height: 10px;
 }
 
  .row{
@@ -135,9 +135,6 @@ height: 10px;
     margin: 3px 0;
     border-radius: 4px;
 }
-
-
-
 
 .actionTable > tbody>tr>th{
     background: #526b77;
@@ -158,7 +155,11 @@ height: 10px;
 }
 
 .draft-editor-inner {
-    padding: 0 10px;
+    padding: 0 0px;
+}
+
+.editor-description-inner{
+    padding-top: 0px;
 }
 
 .headertable> tbody> tr>th{
@@ -185,7 +186,7 @@ height: 10px;
     vertical-align: top;
     border-top: 1px solid #ddd;
     padding-top: 6px;
-    padding-bottom: 4px;
+    padding-bottom: 0px;
 }
 
 .mytable > tbody > tr  {
@@ -193,11 +194,9 @@ height: 10px;
     vertical-align: top;
     border-top: 1px solid #ddd;
     padding-top: 6px;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
     height: 29px;
 }
-
-
 
 .react-bs-container-header table-header-wrapper{
     line-height: 1;
@@ -220,7 +219,6 @@ padding-top: 11px;
 .react-bs-table .table > thead > tr > th{
     padding: 4px 9px;
 }
-
 
 .arrow{
     transition: transform .3s;
@@ -261,3 +259,16 @@ padding-top: 11px;
     white-space: normal;
     padding-bottom: 0.1%;
   }
+
+  .response-editor-wrapper{
+    border: 0px solid #e4dede;
+}
+.hide-toolbar { display:none !important; }
+
+.pTop13{
+    padding-top: 9px;
+}
+.public-DraftStyleDefault-block {
+    margin: 0.3em 0;
+    padding-top: 0px;
+} 
