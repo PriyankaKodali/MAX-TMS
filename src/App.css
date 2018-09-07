@@ -97,3 +97,36 @@ nav> .navbar .navbar-inverse{
   margin-top: 0px;
   clear: both;
 }
+
+.btnClose{
+  margin-right: 4%;
+  width: 30px; 
+  background: white;
+  height: 30px; 
+}
+
+.modal-header {
+  padding: 5px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.modelClose{
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 0px 0 #fbf8f8;
+  filter: alpha(opacity=20);
+  opacity: .2;
+  border: 0px;
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
+
+.modelBtnClose{
+  margin-right: 4%;
+  width: 27px;
+  background: #fbfbfb;
+  height: 41px;
+}

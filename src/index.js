@@ -26,6 +26,11 @@ import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput/js/plugins/purify.min.js';
 import 'bootstrap-fileinput/js/fileinput.js';
 import 'bootstrap-fileinput/themes/explorer/theme.js';
+import Project from './MaterialRequest/Project';
+import StockRequests from './MaterialRequest/StockRequests';
+import EditStockRequest from './MaterialRequest/EditStockRequest';
+import StockReport from './StockReport/StockReport';
+
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
@@ -48,7 +53,10 @@ ReactDOM.render((
                 <Route exact path="/ViewTask" render={(nextState) => requireAuth(nextState, <ViewTask location={nextState.location} history={nextState.history} match={nextState.match} />)} />
                 <Route exact path="/MIMICUser" render={(nextState) => requireAuth(nextState, <MIMICUser location={nextState.location} history={nextState.history} match={nextState.match} />)} />
                 <Route exact path="/Report" render={(nextState) => requireAuth(nextState, <Report location={nextState.location} history={nextState.history} match={nextState.match} />)} />
-             
+                <Route exact path="/Project" render={(nextState) => requireAuth(nextState, <Project location={nextState.location} match={nextState.match} history={nextState.history} />)} />
+                <Route exact path="/StockRequests" render={(nextState) => requireAuth(nextState, <StockRequests location={nextState.location} match={nextState.match} history={nextState.history} />)} />
+                <Route exact path="/EditStockRequest/:id" render={(nextState) => requireAuth(nextState, <EditStockRequest location={nextState.location} match={nextState.match} history={nextState.history} />)} />
+                <Route exact path="/StockReport" render={(nextState)=>requireAuth(nextState, <StockReport  location={nextState.location} match={nextState.match} history={nextState.history}/>)} />
             </App>
         </div>
     </HashRouter>

@@ -57,15 +57,29 @@ class App extends Component {
                                         }
 
                                         <li className="dropdown pointer">
+                                            <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown" > Material Request <span className="caret"></span></a>
+                                            <ul className="dropdown-menu">
+                                                {
+                                                    <li>
+                                                        {/* <a onClick={() => { this.props.history.push("/Project") }}> Project </a> */}
+                                                        <a onClick={() => { this.props.history.push("/StockRequests") }}> Project </a>
+                                                        <a onClick={() => { this.props.history.push("/StockReport") }}>Stock Report</a>
+                                                        <a onClick={() => { }}> General</a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </li>
+
+                                        <li className="dropdown pointer">
                                             <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown"> Task Tracker <span className="caret"></span> </a>
                                             <ul className="dropdown-menu">
                                                 <li><a onClick={() => { this.props.history.push("/TaskDashBoard") }} > My Dashboard</a></li>
                                                 {
                                                     window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
-                                                       
-                                                            <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a> 
-                                                            <a onClick={() => { this.props.history.push("/Report") }} >Reports</a></li>
-                                                      
+
+                                                        <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
+                                                            <a onClick={() => { this.props.history.push("/Report") }} >Reports</a>
+                                                        </li>
                                                         :
                                                         <li />
                                                 }

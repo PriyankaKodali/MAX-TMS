@@ -105,3 +105,6 @@ display: block!important;
   .trStatusSuccess{
     background-color: rgb(221, 245, 219) !important
   }
+  .pTop25{
+      padding-top: 25px;
+  }

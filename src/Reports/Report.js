@@ -487,7 +487,6 @@ class Report extends Component {
                     return "";
                 }
             }
-
             else if (edoc > moment()) {
                 return "";
             }
