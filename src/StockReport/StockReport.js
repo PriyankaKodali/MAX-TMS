@@ -16,9 +16,9 @@ class StockReport extends Component {
         super(props);
         this.state = {
             Client: '', Project: null, SearchClick: true, Clients: [], Projects: [], dataTotalSize: 1,
-            currentPage: 1, sizePerPage: 10, StockReport: [], StockDetails: [], GetStockDetails: false
-            // FromDate: moment().subtract(30, "days").format("YYYY-MM-DD"),
-            // ToDate: moment().format("YYYY-MM-DD")
+            currentPage: 1, sizePerPage: 10, StockReport: [], StockDetails: [], GetStockDetails: false,
+            ProjectName: '', ClientName: ''
+
         }
     }
 
@@ -31,13 +31,18 @@ class StockReport extends Component {
             success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
 
+        this.GetStockReport(this.state.currentPage, this.state.sizePerPage);
+
+    }
+
+
+    GetStockReport(page, count) {
         $.ajax({
             url: ApiUrl + "/api/Stock/GetStockReport?clientId=" + this.state.Client +
                 "&projectId=" + this.state.Project + "&page=" + this.state.currentPage + "&count=" + this.state.sizePerPage,
             type: "get",
             success: (data) => { this.setState({ StockReport: data["stockReport"] }) }
         })
-
     }
 
     render() {
@@ -62,13 +67,13 @@ class StockReport extends Component {
                                     <Select className="form-control" placeholder="Select Client" value={this.state.Client} options={this.state.Clients} onChange={this.ClientChanged.bind(this)} />
                                 </div>
 
-                                <div className="col-md-3 form-group">
+                                <div className="col-md-3 form-group" key={this.state.Projects}>
                                     <label> Project </label>
-                                    <Select className="form-control" placeholder="Select Project" value={this.state.Project} options={this.state.Project} onChange={this.ProjectChanged.bind(this)} />
+                                    <Select className="form-control" placeholder="Select Project" value={this.state.Project} options={this.state.Projects} onChange={this.ProjectChanged.bind(this)} />
                                 </div>
 
                                 <div className="col-md-1 pTop25" >
-                                    <button type="submit" className="btn btn-default" name="clear" value="Clear" > Clear</button>
+                                    <button type="submit" className="btn btn-default" name="clear" value="Clear" onClick={this.clearClick.bind(this)} > Clear</button>
                                 </div>
 
                             </div>
@@ -93,7 +98,7 @@ class StockReport extends Component {
                         <TableHeaderColumn dataField="Client" dataSort={true} dataAlign="left" isKey={true} width="30px"> Client </TableHeaderColumn>
                         <TableHeaderColumn dataField="Project" dataSort={true} dataAlign="left" width="30px"> Project </TableHeaderColumn>
                         <TableHeaderColumn dataField="Status" dataAlign="left" dataSort={true} width="15"  > Project Status</TableHeaderColumn>
-                        <TableHeaderColumn dataAlign="left" width="20" dataFormat={this.ViewStockDetailsFormat.bind(this)}> <a> Stock </a> </TableHeaderColumn>
+                        <TableHeaderColumn dataAlign="left" width="20" dataFormat={this.ViewStockDetailsFormat.bind(this)}>  Stock  </TableHeaderColumn>
                     </BootstrapTable>
 
                 </div>
@@ -101,14 +106,15 @@ class StockReport extends Component {
                 <div className={this.state.GetStockDetails}>
                     {
                         this.state.GetStockDetails ?
-                            <div className="modal fade" show={true} id="getProjectStock" role="dialog" data-keyboard="false" data-backdrop="static" key={this.state.AddNewModel}>
+                            <div className="modal fade" id="getProjectStock" role="dialog" data-keyboard="false" data-backdrop="static" key={this.state.AddNewModel}>
                                 <div className="modal-dialog modal-lg"  >
                                     <div className="modal-content">
 
-                                        <div className="modal-header " style={{ background: '#f5f3f3', borderBottom: '0px solid' }}>
+                                        <div className="modal-header " style={{ background: '#f5f3f3', borderBottom: '0px solid', padding: '6px' }}>
                                             <button type="button" className="modelClose btnClose" data-dismiss="modal" id="closeModal"> &times; </button>
                                             <h4 className="col-xs-11  modal-title">
-                                                Stock Used for project
+                                                <label> Client : </label> {this.state.ClientName}
+                                                <label style={{ paddingLeft: '10px' }}> Project :</label> {this.state.ProjectName}
                                             </h4>
                                         </div>
 
@@ -139,7 +145,7 @@ class StockReport extends Component {
                     type: "get",
                     success: (data) => {
                         this.setState({ Projects: data["clientProjects"] }, () => {
-                            // this.GetStockRequests(this.state.currentPage, this.state.sizePerPage)
+                            this.GetStockReport(this.state.currentPage, this.state.sizePerPage);
                         })
                     }
                 })
@@ -147,38 +153,53 @@ class StockReport extends Component {
         }
         else {
             this.setState({ Client: '', Project: null, Projects: [] }, () => {
-                //   this.GetStockRequests(this.state.currentPage, this.state.sizePerPage)
+                this.GetStockReport(this.state.currentPage, this.state.sizePerPage);
             });
         }
     }
 
     ProjectChanged(val) {
-        this.setState({ Project: val.value })
+        if (val) {
+            this.setState({ Project: val.value }, () => {
+                this.GetStockReport(this.state.currentPage, this.state.sizePerPage);
+            })
+        }
+        else {
+            this.setState({ Project: null }, () => {
+                this.GetStockReport(this.state.currentPage, this.state.sizePerPage);
+            })
+        }
     }
 
     ViewStockDetailsFormat(cell, row) {
         var stock = row["Models"];
         return (
-            <a onClick={() => { this.GetProjectStock(stock) }} >  View Stock Details
+            <a onClick={() => { this.GetProjectStock(stock, row["Project"], row["Client"]) }} >  View Stock Details
             </a>
         );
     }
 
-    GetProjectStock(stock) {
-        this.setState({ StockDetails: stock, GetStockDetails: true }, () => {
+    clearClick() {
+        this.setState({ Client: '', Project: null }, () => {
+            this.GetStockReport(this.state.currentPage, this.state.sizePerPage)
+        })
+    }
+
+    GetProjectStock(stock, project, client) {
+        this.setState({
+            StockDetails: stock, GetStockDetails: true, ClientName: client,
+            ProjectName: project
+        }, () => {
             $("#getProjectStock").modal('show');
         })
     }
 
-    handleSearch() {
-
-    }
 
     onPageChange(page, sizePerPage) {
-
+        this.GetStockReport(page, sizePerPage);
     }
     onSizePerPageList(sizePerPage) {
-
+        this.GetStockReport(this.state.currentPage, sizePerPage);
     }
 
 
