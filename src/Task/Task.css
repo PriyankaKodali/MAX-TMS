@@ -128,4 +128,29 @@
 .width48{
     width: 48%;
 }
-  
+.panel-heading{
+    height: 28px !important;
+}
+.modal-footer {
+    padding: 15px;
+    text-align: right;
+    border-top: 0px solid #e5e5e5;
+}
+
+.AssigneesList{
+    border: 1px solid #bfbfbf;
+    border-radius: 21px;
+    margin: 1%;
+}
+
+.modal-header {
+    padding: 0px;
+    border-bottom: 1px solid #e5e5e5;
+    padding-top: 5px;
+    padding-left: 10px !important;
+    padding-right: 16px !important;
+}
+
+.addBtn{
+    padding: 4px 8px !important;
+}

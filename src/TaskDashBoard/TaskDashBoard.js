@@ -15,17 +15,35 @@ var TableHeaderColumn = ReactBSTable.TableHeaderColumn;
 
 function trClassFormat(row, rowIdx) {
     if (row["Status"] === "Open" || row["Status"] === "Reopened") {
-        return "trStatusOpen pointer"
+        if(row["Notifications"]>0)
+        {
+            return "trStatusOpen tasknotification pointer"
+        }
+        else{
+            return "trStatusOpen pointer"
+        }
     }
 
     else if (row["Status"] === "Pending") {
-        return "trStatusPending pointer";
+        if(row["Notifications"]>0)
+        {
+            return "trStatusPending pointer tasknotification";
+        }
+        else{
+            return "trStatusPending pointer";
+        }
     }
     else if (row["Status"] === "Closed") {
         return "trStatusClosed pointer";
     }
     else {
-        return "trStatusClosed pointer";
+        if(row["Notifications"]>0)
+        {
+        return "trStatusClosed pointer tasknotification";
+        }
+        else{
+            return "trStatusClosed pointer ";
+        }
     }
 }
 
@@ -40,18 +58,16 @@ class TaskDashBoard extends Component {
             ClientType: null, Status: '', Priority: '', Department: null, Departments: [],
             myTasks: 1, currentPage: 1, sizePerPage: 10, dataTotalSize: 0, sortCol: 'CreatedDate',
             TaskFrom: '', sortDir: 'desc', Clients: [], Client: '', TasksOnMe: [], TasksByMe: [],
-            TasksThroughMe: [], toDoList: true, tasksByMe: true, showTaskThroughMe: false,
+            TasksThroughMe: [], toDoList: true, tasksByMe: true, showTaskThroughMe: true,
             TaskByMeSizePerPage: 10, TaskByMeCurrentPage: 1, TaskByMeDataTotalSize: 0,
             TaskThroughMeSizePerPage: 10, TaskThroughMeCurrentPage: 1, TaskThroughMeDataTotalSize: 0,
             ActivitiesSummary: [], TaskByMeSummary: [], TaskThroughMeSummary: [], EmployeeId: null
-
-
         }
     }
 
     componentWillMount() {
 
-        this.setState({ EmployeeId: this.props.match.params["id"] }, () => {
+        this.setState({ EmployeeId: this.props.match.params["id"], EmployeeName: this.props.match.params["EmpName"] }, () => {
             // alert(this.props.match.params["id"]);
         })
 
@@ -245,6 +261,9 @@ class TaskDashBoard extends Component {
                     </div>
                 </div>
                 <div className="clearfix"></div>
+                
+                {/* { sessionStorage.getItem("EmpId")==this.state.EmployeeId ? "" : <b>MIMIC USER : </b>} */}
+               
                 <div className="col-xs-12">
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksOnMe" ?
@@ -285,13 +304,13 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}
                                                 >
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="12" dataSort={true} > TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="12" dataSort={true}> TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} columnTitle={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="17" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedByName" dataAlign="left" width="20" dataSort={true} >Created By</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Subject" dataAlign="left" width="50" dataSort={true} >Subject</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Priority" dataAlign="left" width="14" dataSort={true} dataFormat={this.priorityFormatter.bind(this)} > Priority </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} >Category/ SubCategory</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="12" dataSort={true} >Status </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="10" dataSort={true} >TAT </TableHeaderColumn>
                                                     <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="5" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
@@ -328,7 +347,6 @@ class TaskDashBoard extends Component {
 
                                 {
                                     this.state.tasksByMe ?
-
                                         this.state.IsDataAvailable ?
                                             <div className="col-xs-12">
                                                 <BootstrapTable striped hover remote={true} pagination={true} trClassName={trClassFormat}
@@ -347,12 +365,12 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}
                                                 >
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="left" width="10" dataSort={true} > TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="left" width="10" dataSort={true}> TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="12" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Subject" dataAlign="left" width="35" dataSort={true} >Subject</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Priority" dataAlign="left" width="9" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="20" dataSort={true} > Category/SubCategory </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="20" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} > Category/SubCategory </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="10" dataSort={true} >Status </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskOwnerName" dataAlign="left" width="13" dataSort={true} >Task Owner</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="6" dataSort={true} dataAlign="center" >TAT </TableHeaderColumn>
@@ -415,7 +433,7 @@ class TaskDashBoard extends Component {
                                                     <TableHeaderColumn dataField="EmpCreatedBy" dataAlign="left" width="16" dataSort={true} >Created By</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Subject" dataAlign="left" width="45" dataSort={true} >Subject</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Priority" dataAlign="left" width="14" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} >Category/ SubCategory</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="12" dataSort={true} >Status </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="EmpTaskOwner" dataAlign="left" width="18" dataSort={true} >Task Owner </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="8" dataSort={true} dataAlign="center" >TAT </TableHeaderColumn>
@@ -436,6 +454,36 @@ class TaskDashBoard extends Component {
             </div>
 
         )
+    }
+
+    // TicketFormat(cell, row){
+    //     if(row["Notifications"]>0)
+    //     {
+    //         return(
+    //             <p>
+    //                 {/* <span className="tasknotifications" > {row["Notifications"]} </span> */}
+    //                 <span className="badge" style={{ backgroundColor: '#62a9e2'}} title="Notifications">N</span>
+    //                 <span>{row["TaskId"]}</span>
+    //             </p>
+    //         )
+    //     }
+    //     else{
+    //         return (row["TaskId"]);
+    //     }
+    // }
+
+    CategoryFormatter(cell,row){
+        if(row["Quantity"]!=null)
+        {
+            return(
+                <p>{row["CategorySubCategory"]} <b> : </b> {row["Quantity"]} </p>
+            )
+        }
+        else{
+            return (
+                <p>{row["CategorySubCategory"]} </p>
+            )
+        }
     }
 
     rowClassNameFormat(row, rowIdx) {
@@ -474,7 +522,6 @@ class TaskDashBoard extends Component {
     DepatmentClientFormatter(cell, row) {
         return <p >  {row["Department_Id"] == null ? row["ClientName"] : row["Department"]} </p>
     }
-
 
     gotoEditTask(TaskId, CreatedBy, TaskOwner, Status) {
 

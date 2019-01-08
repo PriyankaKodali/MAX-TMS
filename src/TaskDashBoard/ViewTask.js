@@ -11,29 +11,30 @@ import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { validate } from 'validate.js'
 import './TaskDashBoard.css';
+import {AssigneesList} from  '../Task/AssigneesList';
 
 var moment = require('moment');
 
-class ViewTask extends Component {
+class ViewTask extends Component{
 
-    constructor(props) {
+    constructor(props){
         super(props);
-        var froalaConfig = {
-            heightMin: 210
-        }
-        this.state = {
-            Status: null, Statuss: [], Model: "", model: "", FroalaConfig: froalaConfig,
-            CreatedOn: moment(), CreatedBy: '', Action: null, StartDate: moment().format("YYYY-MM-DD"),
-            ActionTypes: [], ActionType: null, TaskInfo: [], TaskLog: [], user: "", DescriptionHtml: "",
-            Description: EditorState.createEmpty(), IsDisabled: false, budgetedHoursDisabled: true, ActivityLog: [], EndDate: "",
-            BudgetedHours: '', showHoursWorked: false, maxBudgetedHours: '', isAcknowledged: false,
-            AssignedBy: null, TaskOwner: null, TaskId: null, Status: null, EmpId: null, TimeUnit: null
+        var assignees=[{AssigneeId:null, AssigneeName:"", Quantity:null}]
+
+        this.state={
+            TaskInfo:[],TaskLog:[],Assignees:[],ActivityLog:[],PreviouslyWorkedQuantity:null,
+            showHoursWorked: false, StartDate: moment().format("YYYY-MM-DD"),budgetedHoursDisabled: false,
+            Description: EditorState.createEmpty(),ActionType: null,IsDisabled: false, DescriptionHtml: "",
+            AssignedBy: null, TaskOwner: null, TaskId: '', Status: null,Status: null, Statuses: [],
+            EndDate: "",maxBudgetedHours: '', BudgetedHours: '',TaskAssignees: assignees,OrgId:null,
+            AddMultipleAssignees: false,
         }
     }
 
     componentWillMount() {
-
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
+        this.setState({OrgId: orgId})
+
         if (this.props.location.state !== undefined) {
             this.setState({
                 TaskId: this.props.location.state["TaskId"],
@@ -43,6 +44,27 @@ class ViewTask extends Component {
                 EmpId: this.props.location.state["EmpId"]
             }, () => {
 
+                var status= this.props.location.state["Status"];
+                var assignedBy= this.props.location.state["AssignedBy"];
+                var taskOwner= this.props.location.state["TaskOwner"];
+                var empId = this.props.location.state["EmpId"];
+
+
+                if(status!="Closed")
+                {
+                    if(empId == assignedBy){
+                        if(status == "Open" || status === "Pending")
+                        {
+                            this.setState({Statuses: [{value: "AcceptToClose", label: "Accept To Close"}]})
+                        }
+                        else{
+                            this.setState({Statuses: [{value: "AcceptToClose", label: "Accept To Close"},{ value: "Reopen", label: "Reopen" }]},()=>{
+                                //    console.log(this.state.Statuses);
+                            })
+                        }
+                    }
+                }
+
                 if (this.props.location.state) {
 
                     $.ajax({
@@ -51,17 +73,29 @@ class ViewTask extends Component {
                         success: (data) => { this.setState({ TaskInfo: data["activity"] }) }
                     })
 
-                    $.ajax({
-                        url: ApiUrl + "/api/Activities/GetTaskLog?taskId=" + this.props.location.state["TaskId"],
-                        type: "get",
-                        success: (data) => {
-                            this.setState({ TaskLog: data["taskLog"] })
-                        }
-                    })
+                    // $.ajax({
+                    //     url: ApiUrl + "/api/Activities/GetTaskLog?taskId=" + this.props.location.state["TaskId"],
+                    //     type: "get",
+                    //     success: (data) => {
+                    //         this.setState({ TaskLog: data["taskLog"] })
+                    //     }
+                    // })
+                    MyAjax(
+                        ApiUrl + "/api/Activities/GetTaskLog?taskId=" + this.props.location.state["TaskId"],
+                        (data)=>{ this.setState({ TaskLog: data["taskLog"] })},
+                        (error) => toast(error.responseText, {
+                            type: toast.TYPE.ERROR
+                        })
+                    )
 
                     MyAjax(
                         ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + this.props.location.state["AssignedBy"] + "&OrgId=" + orgId,
-                        (data) => { this.setState({ Assignees: data["employees"] }) },
+                        (data) => { this.setState({ Assignees: data["employees"] },()=>{
+                            var employees= data["employees"];
+                           // var currentLogin= employees.findIndex((i)=>i.AspNetUserId== sessionStorage.getItem("EmpId"]);
+                           // employees.splice(currentLogin,1);
+
+                        }) },
                         (error) => toast(error.responseText, {
                             type: toast.TYPE.ERROR
                         })
@@ -76,17 +110,36 @@ class ViewTask extends Component {
                                     this.setState({
                                         HoursWorked: data["activitylog"]["TotalHoursWorked"]
                                     }, () => {
-
                                         if (data["activitylog"]["TotalHoursWorked"] > 0) {
                                             this.setState({ showHoursWorked: true })
                                         }
-
-                                        if (data["activitylog"]["StartDate"] !== null) {
+                                        if(data["activitylog"]["TotalQuantityWorked"] > 0) {
+                                            this.setState({PreviouslyWorkedQuantity: data["activitylog"]["TotalQuantityWorked"] })
+                                        }
+                                          if (data["activitylog"]["EndDate"] !== null) {
                                             this.setState({
                                                 StartDate: moment(data["activitylog"]["StartDate"]).format("YYYY-MM-DD"),
                                                 EndDate: moment(data["activitylog"]["EndDate"]).format("YYYY-MM-DD"),
-                                                BudgetedHours: data["activitylog"]["BudgetedHours"], IsDisabled: true, budgetedHoursDisabled: true, isAcknowledged: true
+                                                BudgetedHours: data["activitylog"]["BudgetedHours"], IsDisabled: true, 
+                                                budgetedHoursDisabled: true, isAcknowledged: true
                                             })
+
+                                            //if(empId == sessionStorage.getItem("EmpId") && empId !== assignedBy){
+                                               if(empId !== assignedBy){
+                                                this.setState({ Statuses:[{ value: "Assign", label: "Assign" },
+                                                          { value: "Pending", label: "Pending/Acknowledgement" },
+                                                          { value: "Resolved", label: "Resolved" }]})
+                                            }
+                                        }
+                                        else{
+                                            //if(empId == sessionStorage.getItem("EmpId") && empId !== assignedBy){
+                                            if(empId !== assignedBy){
+                                                this.setState({ Statuses:[{ value: "Assign", label: "Assign" },
+                                                 { value: "Pending", label: "Pending/Acknowledgement" }]})
+                                            }
+                                            // else{
+                                            //     this.setState({ Statuses:[{ value: "Assign", label: "Assign" }]})
+                                            // }
                                         }
                                     })
                                 }
@@ -96,7 +149,6 @@ class ViewTask extends Component {
                             })
                         }
                     })
-
                 }
 
             })
@@ -105,19 +157,16 @@ class ViewTask extends Component {
             this.props.history.push("/TaskDashBoard");
         }
 
-
         $(document).ready(function () {
             $("input, textarea").on("keypress", function (e) {
                 if (e.which === 32)
                     e.preventDefault();
             });
         });
-
-
+       
     }
 
-    componentDidMount() {
-
+    componentDidUpdate() {
         $("#input-id").fileinput({
             theme: "explorer",
             hideThumbnailContent: true,
@@ -133,26 +182,19 @@ class ViewTask extends Component {
                 showUpload: false,
                 showRemove: true
             }
-        }).on("filebatchpreupload", function (event, data) {
-            var form = data.form, files = data.files
-            this.uploadFile(files)
-        }.bind(this))
+        })
     }
 
-    componentDidUpdate() {
-        setUnTouched(document);
-    }
 
-    render() {
-        return (
-
-            <div className="container" key={this.props.location.state} >
-                <div className="col-xs-12" style={{ marginTop: '1%' }}>
+    render(){
+        return(
+            <div className="container" key={this.props.location.state}>
+              <div className="col-xs-12" style={{ marginTop: '1%' }}>
                     <h4 className="col-md-11"> <label>Task Details : {this.state.TaskId}</label><span className="pull-right" /> </h4>
                     <button className="col-md-1 btn btn-default backBtn" onClick={() => { this.props.history.push("/TaskDashboard/" + this.props.location.state["EmpId"]) }}  > Back </button>
                 </div>
-
-                <div className="col-md-6 col-xs-12 ">
+                
+              <div className="col-md-6 col-xs-12 ">
                     <table className="table table-condensed table-bordered headertable">
                         <tbody>
                             <tr>
@@ -167,16 +209,25 @@ class ViewTask extends Component {
                                 <th>Assigned To </th>
                                 <td>{this.state.TaskInfo["TaskOwner"]}</td>
                             </tr>
+                            <tr>
+                                <th>Category</th>
+                                <td>{this.state.TaskInfo["Category"]}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-
-                <div className="col-md-6 col-xs-12 ">
+                
+              <div className="col-md-6 col-xs-12 ">
                     <table className="table table-condensed table-bordered headertable">
                         <tbody>
                             <tr>
-                                <th>Priority </th>
-                                <td>{this.state.TaskInfo["Priority"]}</td>
+                                <th> Exp. Date of closure/Priority </th>
+                                <td >{moment(this.state.TaskInfo["EDOC"]).format("DD-MMM-YYYY")} / 
+                                  <span className={this.state.TaskInfo["Priority"] == "High" ?
+                                      "priorityHigh":  this.state.TaskInfo["Priority"] == "Medium" ? 
+                                      "priorityMedium" : "priorityLow"}>  {this.state.TaskInfo["Priority"]} 
+                                   </span> 
+                                </td>
                             </tr>
                             <tr>
                                 <th>Status</th>
@@ -185,14 +236,23 @@ class ViewTask extends Component {
 
                             <tr>
                                 <th>Assigned Date</th>
-                                <td> {moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}  </td>
-                            </tr>
+                                <td> {moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}  </td>                            </tr>
+                            <tr>
+                                <th>SubCategory</th>
+                                <td>
+                                 <p>{this.state.TaskInfo["SubCategory"]} 
+                                 {this.state.TaskInfo["Quantity"]  ?
+                                 <span> : {this.state.TaskInfo["Quantity"]} </span>
+                                 :"" }
+                                 </p>
 
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div className="col-xs-12">
+              <div className="col-xs-12">
                     <table className="table table-condensed table-bordered headertable">
                         <tbody>
                             <tr>
@@ -201,8 +261,6 @@ class ViewTask extends Component {
                             </tr>
                             <tr>
                                 <th style={{ width: '20px' }} >Description</th>
-                                {/* <td>  {this.state.TaskInfo["Description"]}  </td> */}
-
                                 <td>
                                     <Editor name="actionResponse" readonly={true} id="actionResponse"
                                         editorState={this.getDescription(this.state.TaskInfo["Description"])} toolbarClassName="hide-toolbar"
@@ -211,33 +269,82 @@ class ViewTask extends Component {
                                 </td>
                             </tr>
 
+                              {
+                                 this.state.TaskInfo["TaskType"] === "Client" ?
+                                    <tr>
+                                      <th style={{ width: '20px' }}> Client </th>
+                                       <td> {this.state.TaskInfo["Client"]}</td>
+                                     </tr>
+                                         :
+                                         <tr />
+                              }
+
                                 {
-                                    this.state.TaskInfo["TaskType"] === "Client" ?
-                                        <tr >
+                                    this.state.TaskInfo["TaskType"] === "Client" && this.state.TaskInfo["Location"]!=null ?
+                                          <tr >
                                             <th style={{ width: '20px' }}> Location </th>
                                             <td > {this.state.TaskInfo["Location"]} </td>
-                                        </tr>
+                                          </tr>
                                         :
-                                        ""
+                                        <tr/>
                                 }
-                            
+                              
                         </tbody>
                     </table>
+             </div>
+
+                <div className="col-xs-12" >
+                {/* <table className="table table-condensed table-bordered headertable">
+                    <tbody>
+                    <tr > 
+                     { this.state.TaskInfo["Quantity"] ? <td> <th> Budgeted Quantity</th> {this.state.TaskInfo["Quantity"]}  </td>  :""}
+                     {this.state.budgetedHoursDisabled == true ? <td> <th> Budgeted Hours : </th> {this.state.BudgetedHours} </td> :"" }
+                     </tr>
+
+                    </tbody>
+                </table> */}
+                    <p>
+                    { this.state.TaskInfo["Quantity"] ?
+                     <span><b> Budgeted Quantity : </b>{this.state.TaskInfo["Quantity"]}</span> 
+                       : <span/>
+                    }
+                    {
+                        this.state.budgetedHoursDisabled == true ?
+                        <span><b> Budgeted Hours : </b>  {this.state.BudgetedHours} </span>
+                          :<span />
+                    }
+                    {
+                        this.state.PreviouslyWorkedQuantity !==null ?
+                        <span> <b>Quantity Worked : </b> {this.state.PreviouslyWorkedQuantity} </span>
+                        :<span />
+                    }
+                    {
+                        this.state.showHoursWorked==true ?
+                        <span><b>Hours worked : </b> {this.state.HoursWorked} </span>
+                        : <span />
+                    }
+                    </p>
+
                 </div>
 
-                <h4 className="col-xs-12" > <label>  Action/Responses </label> </h4>
 
-                <div className="col-xs-12">
+              <h4 className="col-xs-12" > <label>  Action/Responses </label> </h4>
+
+              <div className="col-xs-12">
                     <table className="table table-condensed table-bordered actionTable mytable">
                         <tbody>
                             <tr>
                                 <th > Task Date</th>
                                 <th> Assigned By</th>
                                 <th ></th>
-                                <th colspan={2} style={{ width: '50%' }}> Action/ Response</th>
+                                <th colSpan={2} style={{ width: '40%' }}> Action/ Response</th>
                                 <th  >Assigned To</th>
                                 <th > Status </th>
                                 <th >Hours Worked </th>
+                                {this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0?
+                                  <th>Quantity Worked</th>
+                                : <th style={{width: '0%'}} />
+                                 }
                             </tr>
                             {
                                 this.state.TaskLog.map((ele, i) => {
@@ -253,11 +360,10 @@ class ViewTask extends Component {
                                                         )
                                                     })
                                                     :
-                                                    ""
+                                                    ''
                                             }
                                             </td>
-                                            {/* <td colspan={2}>{ele["Description"]}</td> */}
-                                            <td colspan={2} style={{ paddingTop: '1px' }}>
+                                            <td colSpan={2} style={{ paddingTop: '1px' }}>
                                                 <Editor name="actionResponse" readonly={true} id="actionResponse"
                                                     editorState={this.gotoChangeContent(ele["Description"])} toolbarClassName="hide-toolbar"
                                                     wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
@@ -273,6 +379,13 @@ class ViewTask extends Component {
                                                     ""
                                                 }
                                             </td>
+                                            {this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 ?
+                                               <td style={{ textAlign: 'center' }}> 
+                                                 {ele["QuantityWorked"]>0 ? ele["QuantityWorked"] : ""}
+                                              </td>
+                                            :
+                                             <td  style={{ width: '0px' }}></td>
+                                            }
                                         </tr>
                                     )
                                 })
@@ -280,233 +393,286 @@ class ViewTask extends Component {
                         </tbody>
                     </table>
                 </div>
-
-                <div className="col-xs-12" style={{ marginTop: '1%' }}>
-
-                    {
-                        // this.state.Status != "Closed" && this.state.EmpId == this.props.location.state["TaskOwner"] || this.state.EmpId == this.props.location.state["AssignedBy"] ?
-                        this.state.Status != "Closed" && this.state.EmpId == this.state.TaskOwner || this.state.EmpId == this.state.AssignedBy ?
-                            <div className="panel panel-default">
-                                <div className="panel-heading">
-                                    <h4>Action</h4>
+                
+              <div className="col-xs-12" style={{ marginTop: '1%' }} key={this.state.Statuses}>
+                {
+                  this.state.Status != "Closed" && this.state.EmpId == this.state.TaskOwner || this.state.EmpId == this.state.AssignedBy ?
+                    <div className="panel panel-default">
+                        <div className="panel-heading">
+                           <h4>Action</h4>
+                        </div>
+                    <div className="panel-body pver10 p0">
+                        <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)} key={this.state.EmployeeId} key={this.state.Statuses} >
+                           <div className="col-md-3">
+                             <label> Action Type</label>
+                              <div className="form-group">
+                                <div className="input-group">
+                                   <span className="input-group-addon">
+                                     <span className="glyphicon glyphicon-user"></span>
+                                    </span> 
+                                    <Select  className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType} 
+                                      options={this.state.Statuses} onChange={this.ActionTypeChanged.bind(this)} />
                                 </div>
-                                <div className="panel-body pver10 p0">
-                                    <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)} key={this.state.EmployeeId} >
-
-                                        {
-                                            // this.state.EmpId == this.props.location.state["AssignedBy"] && this.state.Status != "Closed" ?
-                                            this.state.EmpId == this.state.AssignedBy && this.state.Status != "Closed" ?
-
-                                                <div className="col-md-3">
-                                                    <label>Action Type </label>
+                             </div>
+                            </div>
+                            {
+                               this.state.ActionType != null ?
+                                  <div> 
+                                    {
+                                      this.state.ActionType.value === "Pending" ?
+                                        <div >
+                                            <div className="col-md-3">
+                                               <label>Expected/Start Date </label>
                                                     <div className="form-group">
                                                         <div className="input-group">
+                                                              <span className="input-group-addon">
+                                                                   <span className="glyphicon glyphicon-calendar"></span>
+                                                                </span>
+                                                                <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOS" ref="dos" autoComplete="off" defaultValue={this.state.StartDate} min={moment().format("YYYY-MM-DD")} />
+                                                          </div>
+                                                         </div>
+                                            </div>
+                                            <div className="col-md-3">
+                                                <label>Expected Date of Completion </label>
+                                                     <div className="form-group">
+                                                         <div className="input-group">
                                                             <span className="input-group-addon">
-                                                                <span className="glyphicon glyphicon-user"></span>
+                                                           <span className="glyphicon glyphicon-calendar"></span>
+                                                          </span>
+                                                         <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOC" ref="doc" autoComplete="off" defaultValue={this.state.EndDate} min={moment().format("YYYY-MM-DD")} onChange={this.EdocChanged.bind(this)} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-md-3">
+                                                <label>Planned Budgeted Hours</label>
+                                                   <div className="form-group">
+                                                       <div className="input-group">
+                                                          <span className="input-group-addon">
+                                                              <span className="glyphicon glyphicon-time" ></span>
                                                             </span>
-                                                            {
-                                                                this.state.Status === "Open" || this.state.Status === "Pending" ?
-                                                                    <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                                        options={[{ value: "AcceptToClose", label: "Accept To Close" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                                                    :
-                                                                    this.state.Status === "Resolved" || this.state.Status == "Reopened" ?
-                                                                        <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                                            options={[{ value: "AcceptToClose", label: "Accept To Close" }, { value: "Reopen", label: "Reopen" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                                                        :
-                                                                        ""
-                                                            }
+                                                          <input className="form-control" disabled={this.state.budgetedHoursDisabled} name="BudgetedHours" type="number" min="0" max={this.state.maxBudgetedHours} ref="budgetedhours" defaultValue={this.state.BudgetedHours} />
                                                         </div>
-                                                    </div>
+                                                  </div>
+                                               </div>
+                                            </div>
+                                          : ""
+                                    }
+
+                                    <div className="col-md-2" style={{ width: '26%' }} >
+                                         <label> Hours Worked</label>
+                                          <div className="form-group">
+                                                <div className="input-group">
+                                                   <span className="input-group-addon">
+                                                       <span className="glyphicon glyphicon-time" ></span>
+                                                    </span>
+                                                    <input className="form-control" name="HoursWorked" type="number" min="0" max="10" ref="hoursWorked" autoComplete="off" />
+                                                 </div>
+                                             </div>
+                                     </div>
+
+
+                                    {
+                                        this.state.showHoursWorked==true ?
+                                             <div className="col-md-3 form-group" style={{ width: '20%' }}>
+                                                 <label> Previously worked hours </label>
+                                                  <input className="form-control" disabled="true" name="previouslyWorkedHours" value={this.state.HoursWorked} />
+                                               </div>
+                                           :  ""
+                                    }
+
+                                    {this.state.TaskInfo["Quantity"] ?
+                                       <div className="col-md-2 form-group">
+                                           <label>Budgeted Quantity</label>
+                                            <input className="form-control" name="budgetedHours" disabled="true" value={this.state.TaskInfo["Quantity"]}  />
+                                        </div>
+                                         :      <div />
+                                    }
+                                    {
+                                      this.state.PreviouslyWorkedQuantity !==null ?
+                                         <div className="col-md-2 form-group" >
+                                                <label>Worked quantity </label>
+                                                <input className="form-control" name="previousQuantity" disabled="true" value={this.state.PreviouslyWorkedQuantity} />
+                                           </div>
+                                        :<div />
+                                    }
+
+                                    {
+                                        this.state.TaskInfo["Quantity"] &&  this.state.EmpId != this.state.AssignedBy && this.state.ActionType.value!=="Assign"?
+                                             <div className="col-md-2 form-group">
+                                                <label>Qunatity Worked</label> 
+                                                <input className="form-control" type="number" placeholder="Quantity worked" name="quantityWorked" ref="quantityWorked"  />
+                                             </div>
+                                            :<div />
+                                    }
+
+                                    {
+                                     this.state.ActionType.value === "Assign" ?
+                                     <div>
+                                        <div className="col-md-3">
+                                         <label> Assignee</label> 
+                                          <div className="form-group">
+                                             <div className="input-group">
+                                                <span className="input-group-addon">
+                                                 <span className="glyphicon glyphicon-user"></span>
+                                                 </span>
+                                            <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.TaskAssignees[0]["AssigneeId"]} options={this.state.Assignees} onChange={this.AssigneeChanged.bind(this)} />
+                                            </div>
+                                           </div>
+                                        </div>
+                                         <div className="col-md-2" >
+                                           <label>Quantity</label>
+                                            <div className="form-group">
+                                               <div className="input-group">
+                                                 <span className="input-group-addon"> </span>
+                                                 <input className="form-control" type="number" step="1" name="quantity" ref="quantity"  placeholder="Quantity" defaultValue={this.state.TaskAssignees[0]["Quantity"]} onChange={this.QuantityChanged.bind(this)} />
                                                 </div>
-                                                :
+                                              </div>
+                                            </div> 
+                                            <div className="col-md-1" style={{marginTop: '2%'}}>
+                                             <button className="btn btn-primary glyphicon glyphicon-plus" type="button" name="add" value="addAssignee" title="Add multiple assignnees" onClick={this.AddAssignees.bind(this)}></button>
+                                             </div>
+                                        </div>
+                                      :   <div />
+                                     }
 
-                                                this.state.EmpId == sessionStorage.getItem("EmpId") ?
-
-                                                    this.state.EmpId == this.state.TaskOwner && this.state.Status != "Closed" && this.state.isAcknowledged ?
-                                                        <div className="col-md-3">
-                                                            <label>Action Type </label>
-                                                            <div className="form-group">
-                                                                <div className="input-group">
-                                                                    <span className="input-group-addon">
-                                                                        <span className="glyphicon glyphicon-user"></span>
-                                                                    </span>
-                                                                    <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                                        options={[{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" }, { value: "Resolved", label: "Resolved" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        :
-                                                        <div className="col-md-3">
-                                                            <label>Action Type </label>
-                                                            <div className="form-group">
-                                                                <div className="input-group">
-                                                                    <span className="input-group-addon">
-                                                                        <span className="glyphicon glyphicon-user"></span>
-                                                                    </span>
-                                                                    <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                                        options={[{ value: "Assign", label: "Assign" }, { value: "Pending", label: "Pending/Acknowledgement" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    :
-                                                    <div className="col-md-3">
-                                                        <label>Action Type </label>
-                                                        <div className="form-group">
-                                                            <div className="input-group">
-                                                                <span className="input-group-addon">
-                                                                    <span className="glyphicon glyphicon-user"></span>
-                                                                </span>
-                                                                <Select className="form-control" name="Action" ref="action" placeholder="Select Action" value={this.state.ActionType}
-                                                                    options={[{ value: "Assign", label: "Assign" }]} onChange={this.ActionTypeChanged.bind(this)} />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                        }
-
-                                        {
-                                            this.state.ActionType != null ?
-                                                <div>
-                                                    {
-                                                        this.state.ActionType.value === "Assign" ?
-
-                                                            <div className="col-md-3">
-                                                                <label> Assign to</label>
-                                                                <div className="form-group">
-                                                                    <div className="input-group">
-                                                                        <span className="input-group-addon">
-                                                                            <span className="glyphicon glyphicon-user"></span>
-                                                                        </span>
-                                                                        <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.Assignee} options={this.state.Assignees} onChange={this.AssignedToChanged.bind(this)} />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            :
-                                                            ""
-                                                    }
-
-                                                    {
-                                                        this.state.ActionType.value === "Pending" ?
-
-                                                            <div >
-                                                                <div className="col-md-3">
-                                                                    <label>Expected/Start Date </label>
-                                                                    <div className="form-group">
-                                                                        <div className="input-group">
-                                                                            <span className="input-group-addon">
-                                                                                <span className="glyphicon glyphicon-calendar"></span>
-                                                                            </span>
-                                                                            <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOS" ref="dos" autoComplete="off" defaultValue={this.state.StartDate} min={moment().format("YYYY-MM-DD")} />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="col-md-3">
-                                                                    <label>Expected Date of Completion </label>
-                                                                    <div className="form-group">
-                                                                        <div className="input-group">
-                                                                            <span className="input-group-addon">
-                                                                                <span className="glyphicon glyphicon-calendar"></span>
-                                                                            </span>
-                                                                            <input className="form-control" disabled={this.state.IsDisabled} style={{ lineHeight: '19px' }} type="date" name="DOC" ref="doc" autoComplete="off" defaultValue={this.state.EndDate} min={moment().format("YYYY-MM-DD")} onChange={this.EdocChanged.bind(this)} />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="col-md-3">
-                                                                    <label>Planned Budgeted Hours</label>
-                                                                    <div className="form-group">
-                                                                        <div className="input-group">
-                                                                            <span className="input-group-addon">
-                                                                                <span className="glyphicon glyphicon-time" ></span>
-                                                                            </span>
-                                                                            <input className="form-control" disabled={this.state.budgetedHoursDisabled} name="BudgetedHours" type="number" min="0" max={this.state.maxBudgetedHours} ref="budgetedhours" defaultValue={this.state.BudgetedHours} />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            :
-                                                            ""
-                                                    }
-
-                                                    <div className="col-md-3" style={{ width: '26%' }} >
-                                                        <label>No. Of Hours Worked</label>
-                                                        <div className="form-group">
-                                                            <div className="input-group">
-                                                                <span className="input-group-addon">
-                                                                    <span className="glyphicon glyphicon-time" ></span>
-                                                                </span>
-                                                                <input className="form-control" name="HoursWorked" type="number" min="0" max="10" ref="hoursWorked" autoComplete="off" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* <div className="col-md-4 form-group" style={{ width: '28%' }} >
-                                                        <div className="col-md-6">
-                                                            <label> Hours(worked) </label>
-                                                            <input className="col-md-5 form-control" name="HrsWorked" type="number" min="0" max="10" ref="hours" autoComplete="off" />
-                                                          
-                                                        </div>
-
-
-                                                        <div className="col-md-6" >
-                                                            <label> Minutes(worked) </label>
-                                                            <input className="form-control" name="MinWorked" type="number" min="0" max="60" ref="minutes" autoComplete="off" />
-                                                        </div>
-
-                                                        <p type="hidden" id="workedhours" ref="errorInfo" name="errorInfo" />
-                                                    </div> */}
-
-                                                    {
-                                                        this.state.showHoursWorked ?
-                                                            <div className="col-md-3 form-group" style={{ width: '20%' }}>
-                                                                <label> Previously worked hours </label>
-                                                                <input className="form-control" disabled="true" name="previouslyWorkedHours" value={this.state.HoursWorked} />
-                                                            </div>
-                                                            :
-                                                            ""
-                                                    }
-                                                </div>
-                                                :
-                                                <div />
-                                        }
-
-                                        {
-                                            //  this.state.EmpId == this.props.location.state["TaskOwner"] || this.state.EmpId == this.props.location.state["AssignedBy"] ?
-
-                                            this.state.EmpId == this.state.TaskOwner || this.state.EmpId == this.state.AssignedBy ?
-                                                <div>
-                                                    <div className="col-xs-12" style={{ paddingTop: '12px' }}>
-                                                        <label> Action  </label>
-                                                        <div className="form-group" style={{ height: "auto" }}>
-                                                            <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
-                                                            <input type="hidden" id="desc" ref="description" name="forErrorShowing" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-12">
-                                                        <div className="form-group">
-                                                            <input className="file" name="file[]" id="input-id" type="file" ref="Upldfiles" data-preview-file-type="any" showUpload="false" multiple />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-xs-12 text-center form-group">
-                                                        <div className="loader" style={{ marginLeft: '50%', marginBottom: '2%' }}></div>
-                                                        <button type="submit" name="submit" className="btn btn-primary" style={{ marginTop: '1%' }}>Submit</button>
-
-                                                    </div>
-                                                </div>
-                                                :
-                                                <div />
-                                        }
-
-                                    </form>
+                                    </div>
+                              : <div />
+                            }
+                         <div className="col-xs-12" key={this.state.TaskAssignees}>
+                            <div className="col-xs-12">
+                          {
+                            this.state.TaskAssignees.map((ele,i)=>{
+                                if(ele["AssigneeName"]!=='' && ele["Quantity"]!=null && ele["Quantity"]!=""){
+                                   return(
+                                        <span key={i+ moment().format('h:mm')}>  <b>Assignee Name :  </b> {ele["AssigneeName"]}  
+                                        <b>  Quantity : </b> {ele["Quantity"]}
+                                         {
+                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> :<span />
+                                         }
+                                        </span>
+                                     )
+                                }
+                                else{
+                                   if(ele["AssigneeName"]!==''){
+                                     return(
+                                         <span key={i+moment().format('h:mm')}>  <b>Assignee Name :  </b> {ele["AssigneeName"]}  
+                                         {
+                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> : <span />
+                                         }
+                                          </span>
+                                       )}
+                                }
+                            })
+                           }
+                           </div>
+                          </div>
+                            {
+                              this.state.EmpId == this.state.TaskOwner || this.state.EmpId == this.state.AssignedBy ?
+                              <div>
+                               <div className="col-xs-12" style={{ paddingTop: '12px' }}>
+                                  <label> Action  </label>
+                                  <div className="form-group" style={{ height: "auto" }}>
+                                     <Editor name="actionResponse" id="actionResponse" key="actionResponse" ref="editor" toolbar={{ image: { uploadCallback: this.uploadCallback.bind(this) } }} editorState={this.state.Description} toolbarClassName="toolbarClassName" wrapperClassName="draft-editor-wrapper" editorClassName="draft-editor-inner" onEditorStateChange={this.messageBoxChange.bind(this)} />
+                                       <input type="hidden" id="desc" ref="description" name="forErrorShowing" />
+                                    </div>
                                 </div>
-                            </div>
-                            : <div />
-                    }
-                </div>
+                                <div className="col-xs-12 form-group">
+                                  <input className="file" name="file[]" id="input-id" type="file" ref="Upldfiles" data-preview-file-type="any"  multiple />
+                                  {/* showUpload="false" */}
+                                </div>
+                                <div className="col-xs-12 text-center form-group">
+                                   <div className="loader" style={{ marginLeft: '50%', marginBottom: '2%' }}></div>
+                                       <button type="submit" name="submit" className="btn btn-primary" style={{ marginTop: '1%' }}>Submit</button>
+                                    </div>
+                                </div>
+                               :
+                             <div />
+                            }
+                        </form>
+                      </div>
+                    </div>
+                   :
+                  <div />
+                }
+              </div>
+             
+             {
+                 this.state.AddMultipleAssignees ?
+                 <div className="modal fade" id="assigneesModal" role="dialog" data-backdrop="static"  key={this.state.TaskAssignees}>
+                  <div className="modal-dialog modal-lg" style={{width: '728px'}}>
+                    <div className="modal-content">
+                      <div className="modal-header">
+                         <button type="button" className="close" data-dismiss="modal" id="closeModal">&times;</button>
+                         <h4 className="modal-title">Assignees List</h4>
+                      </div>
+                      <div className="modal-body">
+                        <AssigneesList CreatorId={this.state.AssignedBy} QuantityWorked={this.state.PreviouslyWorkedQuantity!==null ? this.state.PreviouslyWorkedQuantity: ""} TaskId= {this.state.TaskId} BudgetedQuantity={this.state.TaskInfo["Quantity"]} SelectedAssigneesList={this.state.TaskAssignees} OrgId={this.state.OrgId} UpdatedTaskAssigneesList={this.handleAssignees.bind(this)} />
+                      </div>
+                     <div className="modal-footer"> </div>
+                    </div>
+                 </div>
+               </div>
+               :
+               <div />
 
+             }
+             
             </div>
         )
     }
+
+    AddAssignees(){
+        this.setState({AddMultipleAssignees: true},()=>{
+            $("#assigneesModal").modal('show');
+        })
+    }
+
+    AssigneeChanged(val) {
+        var assignee=this.state.TaskAssignees;
+        if(val!=null){
+            assignee[0]["AssigneeId"]= val.value;
+            assignee[0]["AssigneeName"]= val.label;
+            this.setState({TaskAssignees:assignee })
+            showErrorsForInput(this.refs.assignee.wrapper, null);
+        }
+        else{
+            assignee[0]["AssigneeId"]= '';
+            assignee[0]["AssigneeName"]= '';
+            this.setState({TaskAssignees:assignee })
+            showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
+        }
+    }
+
+    QuantityChanged(){
+        var assignee=this.state.TaskAssignees;
+        var budgetedQuantity=this.state.TaskInfo["Quantity"];
+        assignee[0]["Quantity"] = this.refs.quantity.value;
+        if(this.refs.quantity.value<=0){
+            showErrorsForInput(this.refs.quantity, ["Should be greater than 0"]);    
+        }
+        else if(budgetedQuantity!="" ){
+            if(this.refs.quantity.value >budgetedQuantity){
+                showErrorsForInput(this.refs.quantity, ["Quantity greater than budgeted quantity"]);    
+            }
+            else{
+                showErrorsForInput(this.refs.quantity, null); 
+            }
+        }
+        else{
+            showErrorsForInput(this.refs.quantity, null);    
+        }
+        this.setState({TaskAssignees:assignee });
+    }
+    
+
+    handleAssignees(val){
+        $("#closeModal").click();
+        var assignee=this.state.TaskAssignees;
+        this.refs.quantity.value= val[0]["Quantity"];
+        this.setState({TaskAssignees:val })
+    }
+
     getDescription(desc) {
         if (this.state.TaskInfo.Description !== undefined) {
             var contentBlock = this.state.TaskInfo["Description"];
@@ -522,7 +688,6 @@ class ViewTask extends Component {
             return editor;
         }
     }
-
 
     gotoChangeContent(content) {
         const contentBlock = convertFromHTML(content);
@@ -551,20 +716,8 @@ class ViewTask extends Component {
         }
     }
 
-
     handleModelChange(model) {
         this.setState({ model: model });
-    }
-
-    AssignedToChanged(val) {
-        if (val) {
-            this.setState({ Assignee: val })
-            showErrorsForInput(this.refs.assignee.wrapper, null);
-        }
-        else {
-            this.setState({ Assignee: '' });
-            showErrorsForInput(this.refs.assignee.wrapper, ["Select Assignee"]);
-        }
     }
 
     EdocChanged() {
@@ -583,8 +736,6 @@ class ViewTask extends Component {
             this.setState({ budgetedHoursDisabled: true });
             showErrorsForInput(this.refs.doc, ["Select expected date of closer"]);
         }
-
-
     }
 
     handleSubmit(e) {
@@ -608,21 +759,28 @@ class ViewTask extends Component {
         data.append("OrgId", sessionStorage.getItem("OrgId"));
 
         if (this.state.ActionType.value === "Assign") {
-            data.append("assignee", this.state.Assignee.value);
+          //  data.append("assignee", this.state.Assignee.value);
             data.append("hoursWorked", this.refs.hoursWorked.value);
+            data.append("assigneeList", JSON.stringify(this.state.TaskAssignees));
+            data.append("ParentTaskDetails", JSON.stringify(this.state.TaskLog));
         }
 
         if (this.state.ActionType.value === "Pending") {
             data.append("budgetedHours", this.refs.budgetedhours.value);
             data.append("edos", this.refs.dos.value);
             data.append("edoc", this.refs.doc.value);
-
             data.append("hoursWorked", this.refs.hoursWorked.value);
         }
 
         if (this.state.ActionType.value === "Resolved") {
-
             data.append("hoursWorked", this.refs.hoursWorked.value)
+        }
+
+        if(this.state.ActionType.value!=="Reopen" && this.state.ActionType.value != "AcceptToClose" && this.state.ActionType.value != "Assign" )
+        {
+          if(this.state.TaskInfo["Quantity"]!=null ){
+           data.append("quantityWorked",  this.refs.quantityWorked.value);
+          }
         }
 
         var files = $("#input-id").fileinput("getFileStack");
@@ -672,13 +830,12 @@ class ViewTask extends Component {
 
     }
 
-
     validate(e) {
         // var success = ValidateForm(e);
         let errors = {};
         var success = true;
         var isSubmit = e.type === "submit";
-
+        var budgetedQuantity=this.state.TaskInfo["Quantity"];
 
         if (isSubmit) {
             $(e.currentTarget.getElementsByClassName('form-control')).map((i, el) => {
@@ -699,13 +856,72 @@ class ViewTask extends Component {
         }
 
         if (this.state.ActionType != undefined && this.state.ActionType.value != "Reopen" && this.state.ActionType.value != "AcceptToClose") {
-            if (this.state.ActionType.value == "Assign" && (!this.state.Assignee || !this.state.Assignee.value)) {
+            if (this.state.ActionType.value == "Assign" ) {
+           var AssigneesList= this.state.TaskAssignees;
+           if(AssigneesList.length==1)
+              {
+                if(AssigneesList[0]["AssigneeId"]== null){
+                showErrorsForInput(this.refs.assignee.wrapper, ["Please select assignee"]);
                 success = false;
-                showErrorsForInput(this.refs.assignee.wrapper, ["Please select Assignee"]);
                 if (isSubmit) {
                     this.refs.assignee.focus();
                     isSubmit = false;
                 }
+            }
+            else{
+                if(budgetedQuantity !=null){
+                    if(AssigneesList[0]["Quantity"]==null || AssigneesList[0]["Quantity"]<=0 )
+                    {
+                        success= false;
+                        showErrorsForInput(this.refs.quantity, ["Quantity Required"]);
+                        if(isSubmit){
+                            this.refs.quantity.focus();
+                            isSubmit= false;
+                           }
+                    }
+                    else 
+                    {
+                     if(this.state.PreviouslyWorkedQuantity!=null)
+                      {
+                        var maxQuantityToBeAssigned = parseInt(budgetedQuantity) - parseInt(this.state.PreviouslyWorkedQuantity)                       
+                        if(parseInt(AssigneesList[0]["Quantity"]) > maxQuantityToBeAssigned || parseInt(AssigneesList[0]["Quantity"]) < maxQuantityToBeAssigned )
+                        {
+                            success= false;
+                            showErrorsForInput(this.refs.quantity, ["Quantity should be equal to " + maxQuantityToBeAssigned]); 
+                            if(isSubmit){
+                              this.refs.quantity.focus();
+                              isSubmit= false;
+                             }
+                        }
+                       }
+                      else{
+                        if(AssigneesList[0]["Quantity"]<budgetedQuantity || AssigneesList[0]["Quantity"]>budgetedQuantity ){
+                            success= false;
+                            showErrorsForInput(this.refs.quantity, ["Quantity should be equal to  budgeted quantity" ]); 
+                            if(isSubmit){
+                                this.refs.quantity.focus();
+                                isSubmit= false;
+                               }
+                        }
+                    else{
+                            showErrorsForInput(this.refs.quantity, null); 
+                      }
+                    }
+                    }
+                }
+                else{
+                    if(AssigneesList[0]["Quantity"]!==null && AssigneesList[0]["Quantity"]<=0){
+                        success= false;
+                        showErrorsForInput(this.refs.quantity, ["Quantity should be greater than 0"]); 
+                        if(isSubmit){
+                            this.refs.quantity.focus();
+                            isSubmit= false;
+                           }
+                    }
+                   
+                }
+              }          
+            }
             }
 
             if (this.state.ActionType.value == "Pending") {
@@ -751,7 +967,7 @@ class ViewTask extends Component {
                         maxBudgetedHours = 8;
                     }
 
-                    if (this.refs.budgetedhours.value === "") {
+                    if (this.refs.budgetedhours.value === "" || this.refs.budgetedhours.value ==="0") {
                         success = false;
                         showErrorsForInput(this.refs.budgetedhours, ["Please enter budgeted hours"]);
                         if (isSubmit) {
@@ -770,6 +986,24 @@ class ViewTask extends Component {
                     else {
                         showErrorsForInput(this.refs.budgetedhours, []);
                     }
+                     
+                    if(this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0)
+                     {
+                        if(this.refs.quantityWorked.value!=""){
+                            if(parseFloat(this.refs.quantityWorked.value) <0){
+                             showErrorsForInput(this.refs.quantityWorked, ["Quantity is not valid"]);
+                              this.refs.quantityWorked.focus();
+                              if (isSubmit) {
+                               isSubmit = false;
+                              }
+                            }
+                           else{
+                               showErrorsForInput(this.refs.quantityWorked, []);
+                           }
+                        }
+   
+                     }
+                    
                 }
 
             }
@@ -804,10 +1038,23 @@ class ViewTask extends Component {
                 else {
                     showErrorsForInput(this.refs.hoursWorked, []);
                 }
+
+                if(this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 && this.state.ActionType.value!=="Assign")
+                {
+                   if ( this.refs.quantityWorked.value!="" && parseFloat(this.refs.quantityWorked.value)<=0){
+                     success= false;
+                     showErrorsForInput(this.refs.quantityWorked,["Should be greater than 0"]);
+                     if(isSubmit){
+                       this.refs.quantityWorked.focus();
+                       isSubmit = false;
+                     }
+                }
+                else{
+                     showErrorsForInput(this.refs.quantityWorked,[]);
+                  }
+                }
             }
-
         }
-
 
         var content = this.state.Description.getCurrentContent();
 
@@ -827,42 +1074,75 @@ class ViewTask extends Component {
         
         return success;
     }
+
 }
+
 export default ViewTask;
 
 
 
-// if (this.state.isAcknowledged) {
-//     if (this.refs.hours.value === "" && this.refs.minutes.value === "") {
-//         success = false;
-//         showErrorsForInput(this.refs.errorInfo, ["Enter the duration worked in hours or minutes"]);
-//         if (isSubmit) {
+  // else if(AssigneesList[0]["Quantity"]!==null && AssigneesList[0]["Quantity"]<=0 ){
+            //     showErrorsForInput(this.refs.quantity, ["Should be greater than 0"]);
+            //     success = false;
+            //     if(isSubmit){
+            //         this.refs.quantity.focus();
+            //         isSubmit= false;
+            //     }
+            // }
+            // else{
+            //     showErrorsForInput(this.refs.assignee.wrapper,null);
+            //     showErrorsForInput(this.refs.quantity,null);
+            //  }
+
+
+// else if(parseFloat(this.refs.quantityWorked.value) > this.state.TaskInfo["Quantity"]){
+//     success = false;
+//    showErrorsForInput(this.refs.quantityWorked, ["Quantity is greater than budgeted"]);
+//        if (isSubmit) {
+//      this.refs.quantityWorked.focus();
+//      isSubmit = false;
+//    }  
+//  }
+
+
+// if(this.refs.quantityWorked.value== ""){
+//     success = false;
+//     showErrorsForInput(this.refs.quantityWorked,["Enter quantity worked"])
+//     if(isSubmit){
+//        this.refs.quantityWorked.focus();
+//        isSubmit = false;
+//     }
+//  }
+
+//  else if(this.refs.quantityWorked.value>0)
+//  {
+//      if(this.state.PreviouslyWorkedQuantity!=null)
+//      {
+//          var currentWorkedQuantity= parseInt(this.refs.quantityWorked.value) + parseInt(this.state.PreviouslyWorkedQuantity);
+         
+//          if(this.state.ActionType.value == "Resolved" && this.state.PreviouslyWorkedQuantity==this.state.TaskInfo["Quantity"] )
+//          {
+//              showErrorsForInput(this.refs.quantityWorked,null);
+//          }
+//          else{
+//              if( currentWorkedQuantity > this.state.TaskInfo["Quantity"])
+//              {
+//                  showErrorsForInput(this.refs.quantityWorked,["you have already worked " + this.state.PreviouslyWorkedQuantity + " quantity"]);
+//                  success= false;
+//                  if(isSubmit){
+//                      this.refs.quantityWorked.focus();
+//                      isSubmit = false;
+//                   }
+//              }
+//          }
+         
+//      }
+//      if(parseFloat(this.refs.quantityWorked.value) > this.state.TaskInfo["Quantity"]){
+//          success = false;
+//          showErrorsForInput(this.refs.quantityWorked,["Enter valid quantity"]);
+//          if(isSubmit){
+//             this.refs.quantityWorked.focus();
 //             isSubmit = false;
-//         }
-//     }
-
-//     else if (this.refs.hours.value !== "" && this.refs.hours.value > 10) {
-//         success = false;
-//         showErrorsForInput(this.refs.hours, ["Hours should be less than 10 "])
-//         if (isSubmit) {
-//             this.refs.hours.focus();
-//             isSubmit = false;
-//         }
-//     }
-
-//     else if (this.refs.minutes.value !== "" && this.refs.minutes.value > 60) {
-//         success = false;
-//         showErrorsForInput(this.refs.minutes, ["Minutes should be less than 60 "])
-//         if (isSubmit) {
-//             this.refs.minutes.focus();
-//             isSubmit = false;
-//         }
-//     }
-
-//     else {
-//         showErrorsForInput(this.refs.errorInfo, []);
-//         showErrorsForInput(this.refs.hours, []);
-//         showErrorsForInput(this.refs.minutes, []);
-//     }
-
-// }
+//          }
+//      }
+//  }

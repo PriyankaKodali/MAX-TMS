@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
-import { ApiUrl } from '../Config';
+import { ApiUrl, remote } from '../Config';
 import Select from 'react-select';
 import { MyAjax } from '../MyAjax';
 import { toast } from 'react-toastify';
@@ -151,7 +151,7 @@ class StockRequests extends Component {
 
                 <div className="col-xs-12" key={this.state.IsDataAvailable}>
                     {this.state.IsDataAvailable ?
-                        <BootstrapTable striped hover pagination={true}
+                        <BootstrapTable striped hover pagination={true} remote={remote}
                             data={this.state.StockRequestsList} trClassName={trClassFormat}
                             fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
                             options={{
@@ -166,16 +166,16 @@ class StockRequests extends Component {
 
                             }}
                         >
-                            <TableHeaderColumn dataField="RequestDate" isKey={true} dataAlign="left" width="15" dataFormat={this.dateFormat.bind(this)}> Date</TableHeaderColumn>
-                            <TableHeaderColumn dataField="ShortName" dataAlign="left" width="20" > Client</TableHeaderColumn>
-                            <TableHeaderColumn dataField="ProjectName" dataAlign="left" width="45" >Project </TableHeaderColumn>
+                            <TableHeaderColumn dataField="RequestDate" isKey={true} dataAlign="left" dataSort={true} width="15" dataFormat={this.dateFormat.bind(this)}> Date</TableHeaderColumn>
+                            <TableHeaderColumn dataField="ShortName" dataAlign="left" width="20" dataSort={true}  > Client</TableHeaderColumn>
+                            <TableHeaderColumn dataField="ProjectName" dataAlign="left" width="45" dataSort={true}  >Project </TableHeaderColumn>
                             {
                                 sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ?
-                                    <TableHeaderColumn dataField="EmployeeName" dataAlign="left" width="20" > Request by</TableHeaderColumn>
+                                    <TableHeaderColumn dataField="EmployeeName" dataAlign="left" width="20" dataSort={true}  > Request by</TableHeaderColumn>
                                     :
                                     <TableHeaderColumn dataField="x" width="0"></TableHeaderColumn>
                             }
-                            <TableHeaderColumn dataField="Status" dataAlign="left" width="15" >Status</TableHeaderColumn>
+                            <TableHeaderColumn dataField="Status" dataAlign="left" width="15" dataSort={true}  >Status</TableHeaderColumn>
                             <TableHeaderColumn dataAlign="center" width="5" dataFormat={this.editFormatter.bind(this)}></TableHeaderColumn>
                         </BootstrapTable>
                         :

@@ -174,7 +174,7 @@ class StockReport extends Component {
     ViewStockDetailsFormat(cell, row) {
         var stock = row["Models"];
         return (
-            <a onClick={() => { this.GetProjectStock(stock, row["Project"], row["Client"]) }} >  View Stock Details
+            <a style={{cursor: 'pointer'}} onClick={() => { this.GetProjectStock(stock, row["Project"], row["Client"]) }} >  View Stock Details
             </a>
         );
     }

@@ -12,7 +12,7 @@ class EditStockRequest extends Component {
 
     constructor(props) {
         super(props);
-        var itemsList = [{ Item: null, ItemDescription: '', Quantity: '', Id: '' }]
+        var itemsList = [{ Item: null, ItemDescription: '', Quantity: '', Id: '',NoOfItemsAvailable:'' }]
         this.state = {
             Clients: [], Client: null, Project: '', Projects: [], Items: [], ItemsList: itemsList,
             RequestedItems: [], StockRequest: [], buttonName: "", StockManagers: [], IsStockManager: false,
@@ -31,14 +31,15 @@ class EditStockRequest extends Component {
                 ApiUrl + "/api/Stock/GetStockRequest?stockReqId=" + this.props.match.params["id"],
                 (data) => {
                     this.setState({
-                        StockRequest: data["stockRequest"], RequestedItems: data["stockRequestItems"],
-                        Client: { value: data["stockRequest"]["Client"], label: data["stockRequest"]["ShortName"] },
-                        Project: { value: data["stockRequest"]["opportunityId"], label: data["stockRequest"]["ProjectLocation"] }
+                        StockRequest: data["stockRequestData"], 
+                        RequestedItems: data["stockRequestData"]["Items"],
+                        Client: { value: data["stockRequestData"]["ClientId"], label: data["stockRequestData"]["ClientName"] },
+                        Project: { value: data["stockRequestData"]["ProjectId"], label: data["stockRequestData"]["ProjectName"] }
 
                     }, () => {
-
+                    
                         $.ajax({
-                            url: ApiUrl + "/api/Client/GetClientProjects?clientId=" + data["stockRequest"]["Client"],
+                            url: ApiUrl + "/api/Client/GetClientProjects?clientId=" + data["stockRequestData"]["ClientId"],
                             type: "get",
                             success: (info) => {
                                 this.setState({
@@ -352,7 +353,7 @@ class EditStockRequest extends Component {
                         {
                             // this.state.StockRequest["Status"] !== "Approved" && this.state.StockRequest["Status"] !== "Rejected" && this.state.StockRequest["Status"] !== "Dispatched" && this.state.IsStockManager == false
                             this.state.AllowStockEdit == true && this.state.IsStockManager == false ?
-                                < div className="col-xs-12 text-center form-group"  >
+                                <div className="col-xs-12 text-center form-group"  >
                                     {
                                         sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ?
                                             <div key={this.state.ItemsNotAvailable}>
@@ -378,9 +379,8 @@ class EditStockRequest extends Component {
                         }
 
                     </div>
-                </form >
-
-            </div >
+                </form>
+            </div>
         )
     }
 
@@ -427,10 +427,34 @@ class EditStockRequest extends Component {
 
     ItemChanged(e, ele) {
         var items = this.state.ItemsList;
+        var models= this.state.Items;
+        var previouslySelected= -1;
         if (ele != null) {
-            items[e]["Item"] = ele.value;
-            items[e]["Description"] = ele.description;
-            items[e]["Id"] = "";
+            if(ele["Id"]!== '')
+            {
+              previouslySelected= items.findIndex((item)=>item.Item.value == ele.value);
+            }
+            else{
+               previouslySelected= items.findIndex((item)=>item.Item == ele.value);
+            }
+           
+            var modelIndex= models.findIndex((model)=>model.value == ele.value);
+          
+            if(previouslySelected == -1)
+            {
+             if(modelIndex!==-1)
+             {
+              items[e]["NoOfItemsAvailable"] = models[modelIndex]["Availability"];
+             }
+             items[e]["Item"] = ele.value;
+             items[e]["Description"] = ele.description;
+             items[e]["Id"] = "";
+            }
+            else{
+                toast("Item already selected, please check the list", {
+                  type: toast.TYPE.INFO
+                });
+            }
         }
 
         this.setState({ ItemsList: items });
@@ -456,7 +480,7 @@ class EditStockRequest extends Component {
 
     addAnotherItem() {
         var items = this.state.ItemsList;
-        items.push({ Item: null, Description: '', Quantity: '', Id: '' })
+        items.push({ Item: null, Description: '', Quantity: '', Id: '',NoOfItemsAvailable:'' })
         this.setState({ ItemsList: items })
     }
 

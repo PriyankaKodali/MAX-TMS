@@ -62,3 +62,129 @@
     margin: 0.1em 0;
     padding-top: 0px;
 }
+
+#pac-input{
+    background-color: #fff;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    margin-left: 12px;
+    padding: 0 11px 0 13px;
+    text-overflow: ellipsis;
+    width: 400px;
+}
+#container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+  }
+#Employees{
+    width: 20%;
+    overflow: hidden !important;
+    min-height: 100%; 
+    height:auto !important;
+    height:100%;
+}
+
+#locations{
+    width: 80%;
+}
+
+.employee-result-content{
+    display: flex;
+}
+.section-result-text-content{
+    color: #8c8c8c;
+    display: inline-block;
+    font-size: 13px;
+    line-height: 16px;
+    min-width: 1px;
+    -webkit-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.employee-result-header {
+    padding-top: 3px;
+    padding-left: 5px;
+    cursor: pointer;
+}
+
+.employee-result-title-container {
+    padding-right: 10px;
+    display: table-cell;
+    width: 100%;
+    white-space: normal;
+}
+.employee-result-title {
+    color: #000;
+    font-size: 15px;
+    line-height: 16px;
+    padding-bottom: 2px;
+    white-space: normal;
+}
+
+hr {
+    margin-top: 9px;
+    margin-bottom: 1px;
+    border: 0;
+    border-top: 1px solid #eee;
+}
+
+
+.mapButtonControl{
+    background-color: #fff;
+    border :2px solid #fff;
+    border-radius :3px;
+    box-shadow :0 2px 6px rgba(0,0,0,.3);
+    cursor : pointer;
+    margin-bottom: 22px;
+    text-align :'center';
+}
+
+.mTop2{
+    margin-top: 2%;
+}
+
+.search{
+    margin-top: 1%;
+    background-color: #dad6d6;
+    padding: 2px;
+}
+
+.mapIcon{
+    color: rgb(224, 94, 94);
+    font-size: 35px;
+    padding: 4px;
+    border: 1px solid;
+    cursor: pointer;
+}
+
+.isMinOrMaxRow{
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+
+/* 
+.react-time-picker__wrapper {
+    display: flex;
+    border: thin solid gray;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.react-time-picker__inputGroup {
+    flex-grow: 1;
+    display: flex;
+    padding: 0 11px;
+    align-items: baseline;
+    box-sizing: content-box;
+}
+
+.react-time-picker__button {
+    border: 0;
+    background: transparent;
+    padding: 4px 1px;
+} */

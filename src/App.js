@@ -61,10 +61,9 @@ class App extends Component {
                                             <ul className="dropdown-menu">
                                                 {
                                                     <li>
-                                                        {/* <a onClick={() => { this.props.history.push("/Project") }}> Project </a> */}
                                                         <a onClick={() => { this.props.history.push("/StockRequests") }}> Project </a>
-                                                        <a onClick={() => { this.props.history.push("/StockReport") }}>Stock Report</a>
-                                                        <a onClick={() => { }}> General</a>
+                                                        {/* <a onClick={() => { this.props.history.push("/StockReport") }}>Stock Report</a> */}
+                                                        
                                                     </li>
                                                 }
                                             </ul>
@@ -75,10 +74,12 @@ class App extends Component {
                                             <ul className="dropdown-menu">
                                                 <li><a onClick={() => { this.props.history.push("/TaskDashBoard") }} > My Dashboard</a></li>
                                                 {
-                                                    window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                    window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ||  window.isLoggedIn && roles.indexOf("Admin") != -1 ?
 
                                                         <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
                                                             <a onClick={() => { this.props.history.push("/Report") }} >Reports</a>
+                                                            <a onClick={() => { this.props.history.push("/TraceEmployeeLocation") }} >Employee Location Report</a>
+                                                            <a onClick={()=>{this.props.history.push("/EmployeesCurrentLocationMap")}}> Employees Current Location</a>
                                                         </li>
                                                         :
                                                         <li />

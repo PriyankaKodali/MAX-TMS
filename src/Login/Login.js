@@ -86,6 +86,9 @@ class Login extends Component {
                     sessionStorage.setItem("OrgName", data["orgName"]);
                     sessionStorage.setItem("EmpId", data["empId"]);
 
+                    sessionStorage.getItem("roles").indexOf("SuperAdmin")!==-1 ?
+                     this.props.history.push("/EmployeesCurrentLocationMap")
+                     :
                     this.props.history.push("/TaskDashBoard");
 
                 }

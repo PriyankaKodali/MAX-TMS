@@ -9,8 +9,8 @@ else {
 
 var remote = (remoteFunction) => {
     remoteFunction.pagination = true;
+    remoteFunction.cellEdit=true;
     return remoteFunction;
 }
-
 
 export { ApiUrl, remote };

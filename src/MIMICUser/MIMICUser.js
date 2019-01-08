@@ -81,6 +81,18 @@ class MIMICUser extends Component {
             showErrorsForInput(this.refs.employee.wrapper, null);
             this.props.history.push("/TaskDashboard/" + this.state.Employee.value);
 
+        //  this.props.history.push({
+        //     state: {
+        //         TaskId: TaskId,
+        //         AssignedBy: CreatedBy,
+        //         TaskOwner: TaskOwner,
+        //         Status: Status,
+        //         EmpId: empId
+        //     },
+        //     pathname: "/TaskDashboard"
+        // })
+
+
             // alert(this.state.Employee.value);
         }
 
