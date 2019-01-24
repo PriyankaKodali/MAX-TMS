@@ -56,12 +56,14 @@ class TaskDashBoard extends Component {
             ToDos: null, AssignedByMe: null, AssignedThroughMe: null,
             TaskType: { value: 'all', label: 'All' },
             ClientType: null, Status: '', Priority: '', Department: null, Departments: [],
-            myTasks: 1, currentPage: 1, sizePerPage: 10, dataTotalSize: 0, sortCol: 'CreatedDate',
+            myTasks: 1, currentPage: 1, sizePerPage: 50, dataTotalSize: 0, sortCol: 'CreatedDate',
             TaskFrom: '', sortDir: 'desc', Clients: [], Client: '', TasksOnMe: [], TasksByMe: [],
             TasksThroughMe: [], toDoList: true, tasksByMe: true, showTaskThroughMe: true,
-            TaskByMeSizePerPage: 10, TaskByMeCurrentPage: 1, TaskByMeDataTotalSize: 0,
-            TaskThroughMeSizePerPage: 10, TaskThroughMeCurrentPage: 1, TaskThroughMeDataTotalSize: 0,
-            ActivitiesSummary: [], TaskByMeSummary: [], TaskThroughMeSummary: [], EmployeeId: null
+            TaskByMeSizePerPage: 50, TaskByMeCurrentPage: 1, TaskByMeDataTotalSize: 0,
+            TaskThroughMeSizePerPage: 50, TaskThroughMeCurrentPage: 1, TaskThroughMeDataTotalSize: 0,
+            ActivitiesSummary: [], TaskByMeSummary: [], TaskThroughMeSummary: [], EmployeeId: null,
+            PendingTasksOnMe:[], toDoPendingList: true,PendingTasksOnCurrentPage: 1,
+            PendingTasksOnMeDataTotalSize: 0, PendingTasksOnMeSummary:[],ToDoTotalDataSize:0,
         }
     }
 
@@ -96,13 +98,14 @@ class TaskDashBoard extends Component {
         this.GetMyTasks(this.state.currentPage, this.state.sizePerPage);
         this.GetTasksByMe(this.state.currentPage, this.state.sizePerPage);
         this.GetTaskThroughMe(this.state.currentPage, this.state.sizePerPage);
-    }
+        this.GetPendingTasksOnMe(this.state.currentPage, this.state.sizePerPage);
+        }
 
     GetMyTasks(page, count) {
 
         var empId = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
 
-        var url = ApiUrl + "/api/Activities/GetMyTasks?EmpId=" + empId +
+        var url = ApiUrl + "/api/Activities/GetMyTasksWeb?EmpId=" + empId +
             "&clientId=" + this.state.Client +
             "&departmentId=" + this.state.Department +
             "&taskType=" + this.state.TaskFrom +
@@ -116,8 +119,8 @@ class TaskDashBoard extends Component {
             url,
             (data) => {
                 this.setState({
-                    TasksOnMe: data["myTasks"], dataTotalSize: data["totalPages"], IsDataAvailable: true,
-                    ActivitiesSummary: data["actSummary"], currentPage: page, sizePerPage: count
+                    TasksOnMe: data["myTasks"], ToDoTotalDataSize: data["totalCount"], IsDataAvailable: true,
+                    ActivitiesSummary: data["actSummaryTasksOnMe"], currentPage: page, sizePerPage: count
 
                 })
             },
@@ -186,6 +189,34 @@ class TaskDashBoard extends Component {
         )
     }
 
+    GetPendingTasksOnMe(page, count) {
+
+        var empId = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
+
+        var url = ApiUrl + "/api/Activities/GetToDoPendingTasks?EmpId=" + empId +
+            "&clientId=" + this.state.Client +
+            "&departmentId=" + this.state.Department +
+            "&taskType=" + this.state.TaskFrom +
+            "&priority=" + this.state.Priority +
+            "&status=" + this.state.Status +
+            "&page=" + page + "&count=" + count + "&sortCol=" + this.state.sortCol +
+            "&sortDir=" + this.state.sortDir
+        MyAjax(
+            url,
+            (data) => {
+                this.setState({
+                    PendingTasksOnMe: data["myPendingTasks"], PendingTasksOnMeDataTotalSize: data["totalCount"],
+                    PendingTasksOnMeCurrentPage: page, PendingTasksOnMeSizePerPage: count, IsDataAvailable: true,
+                    PendingTasksOnMeSummary: data["actSummary"]
+                })
+            },
+            (error) => toast(error.responseText, {
+                type: toast.TYPE.ERROR
+            }),
+            "GET", null
+        )
+    }
+
     render() {
 
         return (
@@ -235,7 +266,8 @@ class TaskDashBoard extends Component {
                     <div className="col-md-2 form-group">
                         <div className="form-group">
                             <Select className="form-control" name="TaskType" placeholder="Task Type" value={this.state.TaskType}
-                                options={[{ value: 'all', label: 'All' }, { value: 'tasksOnMe', label: 'Tasks On Me' }, { value: 'tasksByMe', label: 'Tasks By Me' }, { value: 'tasksThroughMe', label: 'Tasks Through Me' }]}
+                                options={[{ value: 'all', label: 'All' }, { value: 'tasksOnMe', label: 'Tasks On Me' }, { value: 'tasksByMe', label: 'Tasks By Me' }, { value: 'tasksThroughMe', label: 'Tasks Through Me' }, 
+                                {value:'pendingTasksOnMe', label: 'Pending Tasks'}]}
                                 onChange={this.taskTypeChanged.bind(this)}
                             />
                         </div>
@@ -260,10 +292,9 @@ class TaskDashBoard extends Component {
                         <input type="button" className="btn btn-default clearBtn" value="Clear" onClick={this.ClearClick.bind(this)} />
                     </div>
                 </div>
-                <div className="clearfix"></div>
-                
-                {/* { sessionStorage.getItem("EmpId")==this.state.EmployeeId ? "" : <b>MIMIC USER : </b>} */}
                
+                <div className="clearfix"></div>
+
                 <div className="col-xs-12">
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksOnMe" ?
@@ -289,13 +320,13 @@ class TaskDashBoard extends Component {
                                             <div className="col-xs-12">
                                                 <BootstrapTable striped hover remote={remote} pagination={true} key={this.state.TasksOnMe}
                                                     data={this.state.TasksOnMe} trClassName={trClassFormat} tdStyle={{ whiteSpace: 'normal' }}
-                                                    fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
+                                                    fetchInfo={{ dataTotalSize: this.state.ToDoTotalDataSize }}
                                                     // selectRow={this.selectRowProp}
                                                     options={{
                                                         sizePerPage: this.state.sizePerPage,
                                                         onPageChange: this.onPageChange.bind(this),
-                                                        sizePerPageList: [{ text: '10', value: 10 },
-                                                        { text: '25', value: 25 },
+                                                        sizePerPageList: [{ text: '25', value: 25 },
+                                                        { text: '50', value: 50 },
                                                         { text: 'ALL', value: this.state.dataTotalSize }],
                                                         page: this.state.currentPage,
                                                         onSizePerPageList: this.onSizePerPageList.bind(this),
@@ -304,13 +335,15 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}
                                                 >
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="12" dataSort={true}> TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="left" width="16" dataSort={true} dataFormat={this.TicketFormatter.bind(this)}> TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} columnTitle={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="17" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CreatedByName" dataAlign="left" width="20" dataSort={true} >Created By</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="Subject" dataAlign="left" width="50" dataSort={true} >Subject</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="Priority" dataAlign="left" width="14" dataSort={true} dataFormat={this.priorityFormatter.bind(this)} > Priority </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CreatedByName" dataAlign="left" width="17" dataSort={true} >Created By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="Subject" dataAlign="left" width="45" dataSort={true} >Subject</TableHeaderColumn>
+                                                    {/* <TableHeaderColumn dataField="Priority" dataAlign="left" width="12" dataSort={true} dataFormat={this.priorityFormatter.bind(this)} > Priority </TableHeaderColumn> */}
+                                                    <TableHeaderColumn dataField="LastUpdatedBy" dataAlign="left" width="16" dataSort={true} >Updated By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdated" dataAlign="left" width="14" dataSort={true} dataFormat={this.LastUpdatedFormatter.bind(this)} > Last Updated </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="25" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="12" dataSort={true} >Status </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="10" dataSort={true} >TAT </TableHeaderColumn>
                                                     <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="5" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
@@ -326,6 +359,70 @@ class TaskDashBoard extends Component {
                     }
                 </div>
 
+                 <div className="col-xs-12">
+                    {
+                        this.state.TaskType.value == "all" || this.state.TaskType.value === "pendingTasksOnMe" ?
+                            <div>
+                                <div className="col-xs-12" style={{ marginTop: '0.5%' }} >
+                                    <a onClick={() => { this.setState({ toDoList: !this.state.toDoList }) }} style={{ cursor: 'pointer' }} >
+                                        <h3 className="col-xs-12 formheader"> To Do List Pending
+                                        <span className="job-summary-strip">
+                                                <span> Total Tasks :  {this.state.PendingTasksOnMeSummary["TotalJobs"]} |  </span>
+                                                <span>High :  {this.state.PendingTasksOnMeSummary["PriorityHighJobs"]} |</span>
+                                                <span> Medium :  {this.state.PendingTasksOnMeSummary["PriorityMediumJobs"]} | </span>
+                                                <span> Low : {this.state.PendingTasksOnMeSummary["PriorityLowJobs"]} </span>
+                                            </span>
+
+                                            <span className={(this.state.toDoList ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>
+                                        </h3>
+                                    </a>
+                                </div>
+                                {
+                                    this.state.toDoPendingList ?
+
+                                        this.state.IsDataAvailable ?
+                                            <div className="col-xs-12">
+                                                <BootstrapTable striped hover remote={remote} pagination={true} key={this.state.TasksOnMe}
+                                                    data={this.state.PendingTasksOnMe} trClassName={trClassFormat} tdStyle={{ whiteSpace: 'normal' }}
+                                                    fetchInfo={{ dataTotalSize: this.state.PendingTasksOnMeDataTotalSize }}
+                                                    // selectRow={this.selectRowProp}
+                                                    options={{
+                                                        sizePerPage: this.state.sizePerPage,
+                                                        onPageChange: this.onPageChange.bind(this),
+                                                        sizePerPageList: [{ text: '25', value: 25 },
+                                                        { text: '50', value: 50 },
+                                                        { text: 'ALL', value: this.state.dataTotalSize }],
+                                                        page: this.state.currentPage,
+                                                        onSizePerPageList: this.onSizePerPageList.bind(this),
+                                                        paginationPosition: 'bottom',
+                                                        onSortChange: this.onSortChange.bind(this),
+                                                        onRowClick: this.rowClicked.bind(this)
+                                                    }}
+                                                >
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="14" dataSort={true} dataFormat={this.TicketFormatter.bind(this)}> TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} columnTitle={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="17" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="CreatedByName" dataAlign="left" width="20" dataSort={true} >Created By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="Subject" dataAlign="left" width="33" dataSort={true} >Subject</TableHeaderColumn>
+                                                    {/* <TableHeaderColumn dataField="Priority" dataAlign="left" width="12" dataSort={true} dataFormat={this.priorityFormatter.bind(this)} > Priority </TableHeaderColumn> */}
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdatedBy" dataAlign="left" width="15" dataSort={true} >Updated By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdated" dataAlign="left" width="13" dataSort={true} dataFormat={this.LastUpdatedFormatter.bind(this)} > Last Updated </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="Status" dataAlign="left" width="12" dataSort={true} >Status </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TAT" dataAlign="left" width="8" dataSort={true} >TAT </TableHeaderColumn>
+                                                    <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="5" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
+                                                </BootstrapTable>
+                                            </div>
+                                            :
+                                            <div className="loader visble"></div>
+                                        :
+                                        <div />
+                                }
+                            </div>
+                            : <div />
+                    }
+                </div>
+              
                 <div className="col-xs-12">
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksByMe" ?
@@ -355,8 +452,8 @@ class TaskDashBoard extends Component {
                                                     options={{
                                                         sizePerPage: this.state.TaskByMeSizePerPage,
                                                         onPageChange: this.taskByMePageChange.bind(this),
-                                                        sizePerPageList: [{ text: '10', value: 10 },
-                                                        { text: '25', value: 25 },
+                                                        sizePerPageList: [{ text: '25', value: 25 },
+                                                        { text: '50', value: 50 },
                                                         { text: 'ALL', value: this.state.TaskByMeDataTotalSize }],
                                                         page: this.state.currentPage,
                                                         onSizePerPageList: this.onTaskByMeSizePerPageList.bind(this),
@@ -365,20 +462,22 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}
                                                 >
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="left" width="10" dataSort={true}> TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="left" width="12" dataSort={true} dataFormat={this.TicketFormatter.bind(this)}> TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="12" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Subject" dataAlign="left" width="35" dataSort={true} >Subject</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="Priority" dataAlign="left" width="9" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="20" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} > Category/SubCategory </TableHeaderColumn>
+                                                    {/* <TableHeaderColumn dataField="Priority" dataAlign="left" width="9" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn> */}
+                                                    <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="18" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} > Category/SubCategory </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="10" dataSort={true} >Status </TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="TaskOwnerName" dataAlign="left" width="13" dataSort={true} >Task Owner</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdatedBy" dataAlign="left" width="8" dataSort={true} >Updated By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdated" dataAlign="left" width="13" dataSort={true} dataFormat={this.LastUpdatedFormatter.bind(this)} > Last Updated </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskOwnerName" dataAlign="left" width="12" dataSort={true} >Task Owner</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="6" dataSort={true} dataAlign="center" >TAT </TableHeaderColumn>
                                                     <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="5" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
                                                 </BootstrapTable>
                                             </div>
                                             :
-                                            <div className="loader visble"></div>
+                                            <div className="loader visible"></div>
                                         :
                                         <div />
                                 }
@@ -417,8 +516,8 @@ class TaskDashBoard extends Component {
                                                     options={{
                                                         sizePerPage: this.state.sizePerPage,
                                                         onPageChange: this.onTaskThroughMePageChange.bind(this),
-                                                        sizePerPageList: [{ text: '10', value: 10 },
-                                                        { text: '25', value: 25 },
+                                                        sizePerPageList: [{ text: '25', value: 25 },
+                                                        { text: '50', value: 50 },
                                                         { text: 'ALL', value: this.state.TaskThroughMeDataTotalSize }],
                                                         page: this.state.currentPage,
                                                         onSizePerPageList: this.onTaskThroughMeSizePerPageList.bind(this),
@@ -427,14 +526,16 @@ class TaskDashBoard extends Component {
                                                         onRowClick: this.rowClicked.bind(this)
                                                     }}>
 
-                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="15" dataSort={true} > TicketId</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="TaskId" isKey={true} dataAlign="center" width="17" dataSort={true} dataFormat={this.TicketFormatter.bind(this)} > TicketId</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TaskType" dataAlign="left" width="10" dataSort={true} dataFormat={this.DepatmentClientFormatter.bind(this)} >Department/Client</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="CreatedDate" dataAlign="left" width="17" dataSort={true} dataFormat={this.CreatedDateFormatter.bind(this)} > Created Date</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="EmpCreatedBy" dataAlign="left" width="16" dataSort={true} >Created By</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="Subject" dataAlign="left" width="45" dataSort={true} >Subject</TableHeaderColumn>
-                                                    <TableHeaderColumn dataField="Priority" dataAlign="left" width="14" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="Subject" dataAlign="left" width="43" dataSort={true} >Subject</TableHeaderColumn>
+                                                    {/* <TableHeaderColumn dataField="Priority" dataAlign="left" width="14" dataSort={true} dataFormat={this.priorityFormatter.bind(this)}> Priority </TableHeaderColumn> */}
                                                     <TableHeaderColumn dataField="CategorySubCategory" dataAlign="left" width="27" dataSort={true} dataFormat={this.CategoryFormatter.bind(this)} >Category/ SubCategory</TableHeaderColumn>
                                                     <TableHeaderColumn dataField="Status" dataAlign="left" width="12" dataSort={true} >Status </TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdatedBy" dataAlign="left" width="18" dataSort={true} >Updated By</TableHeaderColumn>
+                                                    <TableHeaderColumn dataField="LastUpdated" dataAlign="left" width="14" dataSort={true} dataFormat={this.LastUpdatedFormatter.bind(this)} > Last Updated </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="EmpTaskOwner" dataAlign="left" width="18" dataSort={true} >Task Owner </TableHeaderColumn>
                                                     <TableHeaderColumn dataField="TAT" dataAlign="left" width="8" dataSort={true} dataAlign="center" >TAT </TableHeaderColumn>
                                                     <TableHeaderColumn columnClassName="edit" dataField="Edit" dataAlign="center" width="6" dataFormat={this.editDataFormatter.bind(this)} ></TableHeaderColumn>
@@ -456,21 +557,25 @@ class TaskDashBoard extends Component {
         )
     }
 
-    // TicketFormat(cell, row){
-    //     if(row["Notifications"]>0)
-    //     {
-    //         return(
-    //             <p>
-    //                 {/* <span className="tasknotifications" > {row["Notifications"]} </span> */}
-    //                 <span className="badge" style={{ backgroundColor: '#62a9e2'}} title="Notifications">N</span>
-    //                 <span>{row["TaskId"]}</span>
-    //             </p>
-    //         )
-    //     }
-    //     else{
-    //         return (row["TaskId"]);
-    //     }
-    // }
+    TicketFormatter(cell, row){
+            return  (
+                <span>
+                  <span className={"glyphicon glyphicon-star"} style={row["Priority"]==0 ? {color:'red'}: row["Priority"]==1 ? {color:'orange'} : {color:'green'}} 
+                      name="star" active="true" />
+                      <span style={{color:'none'}} >  {row["TaskId"]} </span>
+                </span>
+                     
+            )
+    }
+
+    LastUpdatedFormatter(cell,row){
+        if(row["LastUpdated"]!=null)
+        {
+            return (
+                <p>{moment(row["LastUpdated"]).format("DD-MM-YYYY h:mm a")}</p>
+            )
+        }
+    }
 
     CategoryFormatter(cell,row){
         if(row["Quantity"]!=null)
@@ -511,19 +616,19 @@ class TaskDashBoard extends Component {
 
     editDataFormatter(cell, row) {
         return (
-            <a> <i className='glyphicon glyphicon-edit' style={{ fontSize: '14px', cursor: 'pointer' }} onClick={() => this.gotoEditTask(row["TaskId"], row["CreatedBy"], row["TaskOwner"], row["Status"])}  ></i> </a>
+            <a> <i className='glyphicon glyphicon-edit' style={{ fontSize: '14px', cursor: 'pointer' }} onClick={() => this.gotoEditTask(row["TaskId"], row["CreatedBy"], row["TaskOwner"], row["Status"], row["Notifications"])}  ></i> </a>
         )
     }
 
     rowClicked(row) {
-        this.gotoEditTask(row.TaskId, row.CreatedBy, row.TaskOwner, row.Status);
+        this.gotoEditTask(row.TaskId, row.CreatedBy, row.TaskOwner, row.Status, row.Notifications);
     }
 
     DepatmentClientFormatter(cell, row) {
         return <p >  {row["Department_Id"] == null ? row["ClientName"] : row["Department"]} </p>
     }
 
-    gotoEditTask(TaskId, CreatedBy, TaskOwner, Status) {
+    gotoEditTask(TaskId, CreatedBy, TaskOwner, Status, Notification) {
 
         var empId = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
 
@@ -533,7 +638,8 @@ class TaskDashBoard extends Component {
                 AssignedBy: CreatedBy,
                 TaskOwner: TaskOwner,
                 Status: Status,
-                EmpId: empId
+                EmpId: empId,
+                Notifications:Notification
             },
             pathname: "/ViewTask"
         })
@@ -641,6 +747,9 @@ class TaskDashBoard extends Component {
                 }
                 else if (val.value == "tasksThroughMe") {
                     this.GetTaskThroughMe(this.state.currentPage, this.state.sizePerPage);
+                }
+                else if(val.value=='toDoPendingList'){
+                     this.GetPendingTasksOnMe(this.state.currentPage, this.state.sizePerPage);
                 }
                 else {
                     this.GetTasksByMe(this.state.currentPage, this.state.sizePerPage);

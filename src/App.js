@@ -77,13 +77,17 @@ class App extends Component {
                                                     window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ||  window.isLoggedIn && roles.indexOf("Admin") != -1 ?
 
                                                         <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
-                                                            <a onClick={() => { this.props.history.push("/Report") }} >Reports</a>
-                                                            <a onClick={() => { this.props.history.push("/TraceEmployeeLocation") }} >Employee Location Report</a>
-                                                            <a onClick={()=>{this.props.history.push("/EmployeesCurrentLocationMap")}}> Employees Current Location</a>
+                                                            <a onClick={() => { this.props.history.push("/Report") }} >Activities Report</a>
+                                                            {/* {
+                                                                window.isLoggedIn && roles.indexOf("SuperAdmin") != -1? */}
+                                                                <a onClick={() => { this.props.history.push("/LogReport") }} > Activity Log Report</a> 
+                                                               
+                                                            <a onClick={() => { this.props.history.push("/EmployeesLocationMap") }} >Employee Location Report</a>
                                                         </li>
                                                         :
                                                         <li />
                                                 }
+                                              
 
                                             </ul>
                                         </li>

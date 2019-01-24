@@ -165,26 +165,25 @@ hr {
     cursor: pointer;
 }
 
-
-
-/* 
-.react-time-picker__wrapper {
-    display: flex;
-    border: thin solid gray;
-    border-radius: 5px;
-    padding: 2px;
+.selectedDateRow{
+    font-weight: bold;
 }
 
-.react-time-picker__inputGroup {
-    flex-grow: 1;
-    display: flex;
-    padding: 0 11px;
-    align-items: baseline;
-    box-sizing: content-box;
+.panel-default > .panel-heading {
+    color: #f7f2f3;
+    background-color: #287ec5;
+    border-color: #e8e6e6;
 }
 
-.react-time-picker__button {
-    border: 0;
-    background: transparent;
-    padding: 4px 1px;
-} */
+.tasklog{
+    border: 1px solid #dc7177;
+    padding: 5px;
+    margin-bottom: 1px;
+}
+
+.reportHeader{
+    font-size: 18px;
+    text-align: center;
+    color: #ab1862;
+    font-weight: bold;
+}

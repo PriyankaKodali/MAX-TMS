@@ -168,7 +168,7 @@
 
 .panel-heading {
     padding: 1px 14px;
-    border-bottom: 1px solid transparent;
+    border-bottom: 4px solid transparent;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
 }
@@ -248,6 +248,10 @@ padding-top: 11px;
 
 .backBtn {
     width: 5.333333%;
+}
+
+.unreadBtn{
+    width: 11.33333%;
 }
 
 

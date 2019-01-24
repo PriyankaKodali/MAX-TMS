@@ -19,9 +19,8 @@ import ChangePassword from './ChangePassword/ChangePassword';
 import ResetPassword from './ResetPassword/ResetPassword';
 import MIMICUser from './MIMICUser/MIMICUser';
 import Report from './Reports/Report';
-import TraceEmployeeLocation from './Reports/TraceEmployeeLocation';
-import EmployeesCurrentLocationMap from './Reports/EmployeesCurrentLocationMap';
-import LocationsMap from './Reports/LocationsMap';
+import Maps from './Reports/Maps/Maps'
+import LogReport from './Reports/LogReport';
 
 import 'froala-editor/js/froala_editor.pkgd.min.js';
 import 'bootstrap-fileinput/js/plugins/piexif.min.js';
@@ -60,8 +59,8 @@ ReactDOM.render((
                 <Route exact path="/StockRequests" render={(nextState) => requireAuth(nextState, <StockRequests location={nextState.location} match={nextState.match} history={nextState.history} />)} />
                 <Route exact path="/EditStockRequest/:id" render={(nextState) => requireAuth(nextState, <EditStockRequest location={nextState.location} match={nextState.match} history={nextState.history} />)} />
                 <Route exact path="/StockReport" render={(nextState)=>requireAuth(nextState, <StockReport  location={nextState.location} match={nextState.match} history={nextState.history}/>)} />
-                <Route exact path="/TraceEmployeeLocation" render={(nextState)=>requireAuth(nextState, <TraceEmployeeLocation location={nextState.location} match={nextState.match} history={nextState.history} />)} />
-                <Route exact path="/EmployeesCurrentLocationMap" render ={(nextState)=>requireAuth(nextState, <EmployeesCurrentLocationMap location={nextState.location} match={nextState.match} history={nextState.history} /> )} />
+                <Route exact path="/EmployeesLocationMap" render ={(nextState)=>requireAuth(nextState, <Maps location={nextState.location} match={nextState.match} history={nextState.history} /> )} />
+                <Route exact path="/LogReport" render={(nextState)=>requireAuth(nextState, <LogReport location={nextState.location} match={nextState.match} history={nextState.history} />)} />
             </App>
         </div>
     </HashRouter>

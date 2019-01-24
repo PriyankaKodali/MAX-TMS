@@ -1,0 +1,221 @@
+.navbar {
+  z-index: 11;
+}
+
+.maps-wrapper {
+  display: flex;
+  align-items: stretch;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  height: 100%;
+}
+
+.maps #sidebar {
+  min-width: 400px;
+  max-width: 400px;
+  padding-top: 54px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.maps #content {
+  padding-top: 54px;
+}
+
+.maps #sidebar.active {
+  margin-left: -400px;
+}
+
+.maps #sidebar {
+  min-width: 400px;
+  max-width: 400px;
+  min-height: 100vh;
+  background: #fff;
+  transition: all 0.3s;
+  box-shadow: 1px 1px 8px #cecece;
+  z-index: 11;
+}
+
+.maps #sidebar .sidebar-header {
+  padding: 20px;
+  background: #4285f4;
+}
+
+@media (max-width: 768px) {
+  .maps #sidebar {
+    margin-left: -400px;
+  }
+  .maps #sidebar.active {
+    margin-left: 0;
+  }
+}
+
+.maps #sidebarCollapse {
+  width: 22px;
+  height: 50px;
+  position: absolute;
+  margin-top: 141px;
+  left: 400px;
+  box-shadow: 3px 1px 5px #bfbfbf;
+  cursor: pointer;
+  z-index: 11;
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.maps #dataForTheDay {
+  overflow: auto;
+}
+
+.maps #date-input-wrapper {
+  height: 45px;
+  padding: 2px 4px;
+  background-color: #fff;
+  box-shadow: 1px 1px 5px #9a9a9a;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 -1px 0px rgba(0, 0, 0, 0.02);
+  border: 1pt solid #cecece;
+}
+
+.maps .date-input-icons {
+  color: #b7b7b7;
+  font-size: 26px;
+  padding: 0 3px;
+  cursor: pointer;
+}
+
+.maps .date-input-icons:hover {
+  color: #4285f4;
+}
+
+.maps .react-datepicker-wrapper {
+  display: block;
+  cursor: pointer;
+}
+
+.maps .react-datepicker-wrapper input {
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.maps .react-datepicker-wrapper:hover * {
+  font-weight: bold;
+}
+
+.maps .react-datepicker-wrapper input:focus {
+  box-shadow: none;
+}
+
+.maps .location-info {
+  padding: 10px;
+  border-bottom: 1pt solid #cecece;
+  cursor: pointer;
+}
+
+.maps .location-info.active,
+.maps .location-info.active * {
+  background-color: #f0f4c3;
+}
+
+.maps .location-info-employee {
+  color: #000;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 16px;
+}
+
+.maps .location-info-time {
+  color: #8c8c8c;
+  display: inline-block;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.maps .location-info-address {
+  color: #8c8c8c;
+  display: inline-block;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.maps .time-block {
+  border: 1pt solid #b5b5b5;
+  flex-grow: 1;
+  padding: 3px;
+  font-size: 11px;
+  background-color: #cfd8dc;
+}
+
+.maps #employeeData {
+  display: flex;
+  flex-direction: column;
+}
+
+.maps .employee-location-log {
+  overflow-y: auto;
+}
+
+.maps .location-log-item {
+  padding: 5px;
+  border-bottom: 1pt solid #cecece;
+  cursor: pointer;
+}
+
+.maps .location-log-item:hover {
+  background-color: #f0f4c3;
+}
+
+.maps .location-log-item.enter {
+  background-color: #4caf50;
+}
+
+.maps .location-log-item.leave {
+  background-color: #f44336;
+}
+
+.maps .location-log-item.enter *,
+.location-log-item.leave * {
+  color: #fff !important;
+}
+
+.maps .employee-data-header {
+  padding: 10px;
+  border-bottom: 1pt solid #cecece;
+}
+
+.maps .header-employee {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.maps .location-log-header {
+  padding: 5px;
+  background-color: #64b5f6;
+  color: #545454;
+  font-weight: bold;
+}
+
+.maps .location-log-time {
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 3px;
+}
+
+.maps .location-log-address {
+  padding-left: 10px;
+  color: #8c8c8c;
+  display: inline-block;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.maps .d-flex {
+  display: flex;
+}
+
+.maps .align-items-center {
+  align-items: center;
+}

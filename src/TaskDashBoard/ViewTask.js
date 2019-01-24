@@ -4,7 +4,7 @@ import $ from 'jquery';
 import Select from 'react-select';
 import { ApiUrl } from '.././Config.js';
 import { toast } from 'react-toastify';
-import { MyAjaxForAttachments, MyAjax } from '../MyAjax.js';
+import { MyAjaxForAttachments, MyAjax} from '../MyAjax.js';
 import { EditorState, convertToRaw, ContentState, convertFromHTML } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import { Editor } from 'react-draft-wysiwyg';
@@ -12,6 +12,7 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { validate } from 'validate.js'
 import './TaskDashBoard.css';
 import {AssigneesList} from  '../Task/AssigneesList';
+
 
 var moment = require('moment');
 
@@ -27,7 +28,7 @@ class ViewTask extends Component{
             Description: EditorState.createEmpty(),ActionType: null,IsDisabled: false, DescriptionHtml: "",
             AssignedBy: null, TaskOwner: null, TaskId: '', Status: null,Status: null, Statuses: [],
             EndDate: "",maxBudgetedHours: '', BudgetedHours: '',TaskAssignees: assignees,OrgId:null,
-            AddMultipleAssignees: false,
+            AddMultipleAssignees: false,markAsUnreadClick: false,
         }
     }
 
@@ -41,7 +42,8 @@ class ViewTask extends Component{
                 AssignedBy: this.props.location.state["AssignedBy"],
                 TaskOwner: this.props.location.state["TaskOwner"],
                 Status: this.props.location.state["Status"],
-                EmpId: this.props.location.state["EmpId"]
+                EmpId: this.props.location.state["EmpId"],
+                Notifications: this.props.location.state["Notifications"] 
             }, () => {
 
                 var status= this.props.location.state["Status"];
@@ -53,9 +55,8 @@ class ViewTask extends Component{
                 if(status!="Closed")
                 {
                     if(empId == assignedBy){
-                        if(status == "Open" || status === "Pending")
-                        {
-                            this.setState({Statuses: [{value: "AcceptToClose", label: "Accept To Close"}]})
+                        if(status == "Open" || status === "Pending"){
+                            this.setState({Statuses: [{value: "AcceptToClose", label: "Accept To Close"},{value:'Comments', label:'Comments/Remarks'}]})
                         }
                         else{
                             this.setState({Statuses: [{value: "AcceptToClose", label: "Accept To Close"},{ value: "Reopen", label: "Reopen" }]},()=>{
@@ -64,7 +65,6 @@ class ViewTask extends Component{
                         }
                     }
                 }
-
                 if (this.props.location.state) {
 
                     $.ajax({
@@ -92,14 +92,17 @@ class ViewTask extends Component{
                         ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + this.props.location.state["AssignedBy"] + "&OrgId=" + orgId,
                         (data) => { this.setState({ Assignees: data["employees"] },()=>{
                             var employees= data["employees"];
-                           // var currentLogin= employees.findIndex((i)=>i.AspNetUserId== sessionStorage.getItem("EmpId"]);
-                           // employees.splice(currentLogin,1);
+                          var currentLogin= employees.findIndex((i)=>i.value == sessionStorage.getItem("EmpId"));
+                            employees.splice(currentLogin , 1); 
+                            this.setState({Assignees: employees});
 
                         }) },
                         (error) => toast(error.responseText, {
                             type: toast.TYPE.ERROR
                         })
                     )
+
+                
                     $.ajax({
                         url: ApiUrl + "/api/Activities/GetTaskHoursWorkedInfo?taskId=" + this.props.location.state["TaskId"] +
                             "&userId=" + this.props.location.state["EmpId"],
@@ -120,14 +123,16 @@ class ViewTask extends Component{
                                             this.setState({
                                                 StartDate: moment(data["activitylog"]["StartDate"]).format("YYYY-MM-DD"),
                                                 EndDate: moment(data["activitylog"]["EndDate"]).format("YYYY-MM-DD"),
-                                                BudgetedHours: data["activitylog"]["BudgetedHours"], IsDisabled: true, 
-                                                budgetedHoursDisabled: true, isAcknowledged: true
+                                                BudgetedHours: data["activitylog"]["BudgetedHours"],
+                                                // IsDisabled: true, 
+                                                // budgetedHoursDisabled: true,
+                                                 isAcknowledged: true
                                             })
 
                                             //if(empId == sessionStorage.getItem("EmpId") && empId !== assignedBy){
                                                if(empId !== assignedBy){
                                                 this.setState({ Statuses:[{ value: "Assign", label: "Assign" },
-                                                          { value: "Pending", label: "Pending/Acknowledgement" },
+                                                          { value: "Pending", label: "Pending" },
                                                           { value: "Resolved", label: "Resolved" }]})
                                             }
                                         }
@@ -135,7 +140,8 @@ class ViewTask extends Component{
                                             //if(empId == sessionStorage.getItem("EmpId") && empId !== assignedBy){
                                             if(empId !== assignedBy){
                                                 this.setState({ Statuses:[{ value: "Assign", label: "Assign" },
-                                                 { value: "Pending", label: "Pending/Acknowledgement" }]})
+                                                 { value: "InProcess", label: "InProcess/Acknowledgement" },
+                                                 { value: "Pending", label: "Pending" }]})
                                             }
                                             // else{
                                             //     this.setState({ Statuses:[{ value: "Assign", label: "Assign" }]})
@@ -163,7 +169,6 @@ class ViewTask extends Component{
                     e.preventDefault();
             });
         });
-       
     }
 
     componentDidUpdate() {
@@ -185,13 +190,20 @@ class ViewTask extends Component{
         })
     }
 
-
     render(){
         return(
             <div className="container" key={this.props.location.state}>
               <div className="col-xs-12" style={{ marginTop: '1%' }}>
-                    <h4 className="col-md-11"> <label>Task Details : {this.state.TaskId}</label><span className="pull-right" /> </h4>
-                    <button className="col-md-1 btn btn-default backBtn" onClick={() => { this.props.history.push("/TaskDashboard/" + this.props.location.state["EmpId"]) }}  > Back </button>
+                    <h4 className="col-md-6"> <label>Task Details : {this.state.TaskId}</label><span className="pull-right" /> </h4>
+                    {
+                        this.state.Notifications >0 ?
+                        <button style={{float: 'right'}} className="col-md-2 btn btn-default unreadBtn" onClick={this.markAsUnreadClick.bind(this)}  > Mark as Unread </button>
+                        :
+                        <div />
+                    }
+                    
+                    <button style={{float: 'right'}}  className="col-md-2 btn btn-default backBtn" onClick={() => { this.props.history.push("/TaskDashboard/" + this.props.location.state["EmpId"])
+                         }}  > Back </button>
                 </div>
                 
               <div className="col-md-6 col-xs-12 ">
@@ -233,17 +245,17 @@ class ViewTask extends Component{
                                 <th>Status</th>
                                 <td> {this.state.TaskInfo["Status"]} </td>
                             </tr>
-
                             <tr>
                                 <th>Assigned Date</th>
-                                <td> {moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}  </td>                            </tr>
+                                <td> {moment(this.state.TaskInfo["CreatedDate"]).format("DD-MMM-YYYY h:mm a")}  </td> 
+                            </tr>
                             <tr>
                                 <th>SubCategory</th>
                                 <td>
                                  <p>{this.state.TaskInfo["SubCategory"]} 
                                  {this.state.TaskInfo["Quantity"]  ?
                                  <span> : {this.state.TaskInfo["Quantity"]} </span>
-                                 :"" }
+                                 : null }
                                  </p>
 
                                 </td>
@@ -343,7 +355,7 @@ class ViewTask extends Component{
                                 <th >Hours Worked </th>
                                 {this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0?
                                   <th>Quantity Worked</th>
-                                : <th style={{width: '0%'}} />
+                                : null
                                  }
                             </tr>
                             {
@@ -360,7 +372,7 @@ class ViewTask extends Component{
                                                         )
                                                     })
                                                     :
-                                                    ''
+                                                    null
                                             }
                                             </td>
                                             <td colSpan={2} style={{ paddingTop: '1px' }}>
@@ -376,7 +388,7 @@ class ViewTask extends Component{
                                                 {ele["HoursWorked"] > 0 ?
                                                     ele["HoursWorked"]
                                                     :
-                                                    ""
+                                                    null
                                                 }
                                             </td>
                                             {this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 ?
@@ -384,7 +396,7 @@ class ViewTask extends Component{
                                                  {ele["QuantityWorked"]>0 ? ele["QuantityWorked"] : ""}
                                               </td>
                                             :
-                                             <td  style={{ width: '0px' }}></td>
+                                             null
                                             }
                                         </tr>
                                     )
@@ -397,8 +409,8 @@ class ViewTask extends Component{
               <div className="col-xs-12" style={{ marginTop: '1%' }} key={this.state.Statuses}>
                 {
                   this.state.Status != "Closed" && this.state.EmpId == this.state.TaskOwner || this.state.EmpId == this.state.AssignedBy ?
-                    <div className="panel panel-default">
-                        <div className="panel-heading">
+                    <div className="panel panel-default" >
+                        <div className="panel-heading" style={{paddingBottom:'38px'}} >
                            <h4>Action</h4>
                         </div>
                     <div className="panel-body pver10 p0">
@@ -419,10 +431,10 @@ class ViewTask extends Component{
                                this.state.ActionType != null ?
                                   <div> 
                                     {
-                                      this.state.ActionType.value === "Pending" ?
+                                      this.state.ActionType.value === "Pending" || this.state.ActionType.value === "InProcess"?
                                         <div >
                                             <div className="col-md-3">
-                                               <label>Expected/Start Date </label>
+                                               <label>Expected Start Date </label>
                                                     <div className="form-group">
                                                         <div className="input-group">
                                                               <span className="input-group-addon">
@@ -489,7 +501,7 @@ class ViewTask extends Component{
                                          :      <div />
                                     }
                                     {
-                                      this.state.PreviouslyWorkedQuantity !==null ?
+                                      this.state.PreviouslyWorkedQuantity !==null && this.state.ActionType.value!=="Comments" ?
                                          <div className="col-md-2 form-group" >
                                                 <label>Worked quantity </label>
                                                 <input className="form-control" name="previousQuantity" disabled="true" value={this.state.PreviouslyWorkedQuantity} />
@@ -498,7 +510,7 @@ class ViewTask extends Component{
                                     }
 
                                     {
-                                        this.state.TaskInfo["Quantity"] &&  this.state.EmpId != this.state.AssignedBy && this.state.ActionType.value!=="Assign"?
+                                        this.state.TaskInfo["Quantity"] &&  this.state.EmpId != this.state.AssignedBy && this.state.ActionType.value!=="Assign" &&  this.state.ActionType.value!=="Comments"?
                                              <div className="col-md-2 form-group">
                                                 <label>Qunatity Worked</label> 
                                                 <input className="form-control" type="number" placeholder="Quantity worked" name="quantityWorked" ref="quantityWorked"  />
@@ -514,12 +526,13 @@ class ViewTask extends Component{
                                           <div className="form-group">
                                              <div className="input-group">
                                                 <span className="input-group-addon">
-                                                 <span className="glyphicon glyphicon-user"></span>
-                                                 </span>
-                                            <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.TaskAssignees[0]["AssigneeId"]} options={this.state.Assignees} onChange={this.AssigneeChanged.bind(this)} />
+                                                   <span className="glyphicon glyphicon-user"></span>
+                                                </span>
+                                               <Select className="form-control" name="AssignedTo" ref="assignee" placeholder="Select an Assignee" value={this.state.TaskAssignees[0]["AssigneeId"]} options={this.state.Assignees} onChange={this.AssigneeChanged.bind(this)} />
                                             </div>
                                            </div>
                                         </div>
+                                        {this.state.TaskInfo["Quantity"] ?
                                          <div className="col-md-2" >
                                            <label>Quantity</label>
                                             <div className="form-group">
@@ -529,6 +542,9 @@ class ViewTask extends Component{
                                                 </div>
                                               </div>
                                             </div> 
+                                            :
+                                            <div />
+                                          }
                                             <div className="col-md-1" style={{marginTop: '2%'}}>
                                              <button className="btn btn-primary glyphicon glyphicon-plus" type="button" name="add" value="addAssignee" title="Add multiple assignnees" onClick={this.AddAssignees.bind(this)}></button>
                                              </div>
@@ -548,7 +564,7 @@ class ViewTask extends Component{
                                         <span key={i+ moment().format('h:mm')}>  <b>Assignee Name :  </b> {ele["AssigneeName"]}  
                                         <b>  Quantity : </b> {ele["Quantity"]}
                                          {
-                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> :<span />
+                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> : null
                                          }
                                         </span>
                                      )
@@ -558,7 +574,7 @@ class ViewTask extends Component{
                                      return(
                                          <span key={i+moment().format('h:mm')}>  <b>Assignee Name :  </b> {ele["AssigneeName"]}  
                                          {
-                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> : <span />
+                                           (this.state.TaskAssignees.length) !== (i+1) ? <b>,</b> : null
                                          }
                                           </span>
                                        )}
@@ -665,7 +681,6 @@ class ViewTask extends Component{
         this.setState({TaskAssignees:assignee });
     }
     
-
     handleAssignees(val){
         $("#closeModal").click();
         var assignee=this.state.TaskAssignees;
@@ -730,7 +745,6 @@ class ViewTask extends Component{
                 this.setState({ maxBudgetedHours: budgetedDays * 8, budgetedHoursDisabled: false })
             }
         }
-
         else {
             this.refs.budgetedhours.value = ""
             this.setState({ budgetedHoursDisabled: true });
@@ -765,7 +779,7 @@ class ViewTask extends Component{
             data.append("ParentTaskDetails", JSON.stringify(this.state.TaskLog));
         }
 
-        if (this.state.ActionType.value === "Pending") {
+        if (this.state.ActionType.value === "Pending" || this.state.ActionType.value === "InProcess") {
             data.append("budgetedHours", this.refs.budgetedhours.value);
             data.append("edos", this.refs.dos.value);
             data.append("edoc", this.refs.doc.value);
@@ -776,7 +790,7 @@ class ViewTask extends Component{
             data.append("hoursWorked", this.refs.hoursWorked.value)
         }
 
-        if(this.state.ActionType.value!=="Reopen" && this.state.ActionType.value != "AcceptToClose" && this.state.ActionType.value != "Assign" )
+        if(this.state.ActionType.value!=="Reopen" &&this.state.ActionType.value != "Comments"  && this.state.ActionType.value != "AcceptToClose" && this.state.ActionType.value != "Assign" )
         {
           if(this.state.TaskInfo["Quantity"]!=null ){
            data.append("quantityWorked",  this.refs.quantityWorked.value);
@@ -830,6 +844,25 @@ class ViewTask extends Component{
 
     }
 
+    markAsUnreadClick(){
+        var data = new FormData();
+        MyAjaxForAttachments(
+        ApiUrl + "/api/Activities/AddNotification?taskId="+ this.state.TaskId,
+         (data)=>{
+            toast(" Marked as unread!", {
+                type: toast.TYPE.SUCCESS
+            });
+            this.props.history.push("/TaskDashboard/" + this.props.location.state["EmpId"])
+            return true;
+          },
+        (error) => toast(error.responseText, {
+            type: toast.TYPE.ERROR
+        }),
+        "POST",
+        data
+        )
+    }
+
     validate(e) {
         // var success = ValidateForm(e);
         let errors = {};
@@ -881,21 +914,22 @@ class ViewTask extends Component{
                     }
                     else 
                     {
-                     if(this.state.PreviouslyWorkedQuantity!=null)
-                      {
-                        var maxQuantityToBeAssigned = parseInt(budgetedQuantity) - parseInt(this.state.PreviouslyWorkedQuantity)                       
-                        if(parseInt(AssigneesList[0]["Quantity"]) > maxQuantityToBeAssigned || parseInt(AssigneesList[0]["Quantity"]) < maxQuantityToBeAssigned )
-                        {
-                            success= false;
-                            showErrorsForInput(this.refs.quantity, ["Quantity should be equal to " + maxQuantityToBeAssigned]); 
-                            if(isSubmit){
-                              this.refs.quantity.focus();
-                              isSubmit= false;
-                             }
-                        }
-                       }
-                      else{
-                        if(AssigneesList[0]["Quantity"]<budgetedQuantity || AssigneesList[0]["Quantity"]>budgetedQuantity ){
+                    //  if(this.state.PreviouslyWorkedQuantity!=null)
+                    //   {
+                    //     var maxQuantityToBeAssigned = parseInt(budgetedQuantity) - parseInt(this.state.PreviouslyWorkedQuantity)                       
+                    //     if(parseInt(AssigneesList[0]["Quantity"]) > maxQuantityToBeAssigned || parseInt(AssigneesList[0]["Quantity"]) < maxQuantityToBeAssigned )
+                    //     {
+                    //         success= false;
+                    //         showErrorsForInput(this.refs.quantity, ["Quantity should be equal to " + maxQuantityToBeAssigned]); 
+                    //         if(isSubmit){
+                    //           this.refs.quantity.focus();
+                    //           isSubmit= false;
+                    //          }
+                    //     }
+                    //    }
+                   //   else{
+                      //  if(AssigneesList[0]["Quantity"]<budgetedQuantity || AssigneesList[0]["Quantity"]>budgetedQuantity ){
+                        if( AssigneesList[0]["Quantity"]>budgetedQuantity ){
                             success= false;
                             showErrorsForInput(this.refs.quantity, ["Quantity should be equal to  budgeted quantity" ]); 
                             if(isSubmit){
@@ -907,7 +941,7 @@ class ViewTask extends Component{
                             showErrorsForInput(this.refs.quantity, null); 
                       }
                     }
-                    }
+                 //   }
                 }
                 else{
                     if(AssigneesList[0]["Quantity"]!==null && AssigneesList[0]["Quantity"]<=0){
@@ -918,13 +952,13 @@ class ViewTask extends Component{
                             isSubmit= false;
                            }
                     }
-                   
                 }
               }          
             }
             }
 
-            if (this.state.ActionType.value == "Pending") {
+            if (this.state.ActionType.value == "Pending" || this.state.ActionType.value == "InProcess") {
+                 
                 if (validate.single(this.refs.dos.value, { presence: true }) !== undefined) {
                     success = false;
                     showErrorsForInput(this.refs.dos, ["Select expected date of beginning"]);
@@ -933,9 +967,43 @@ class ViewTask extends Component{
                         isSubmit = false;
                     }
                 }
-                else {
-                    showErrorsForInput(this.refs.dos, []);
-                }
+                else{
+                    if(this.state.ActionType.value == "Pending" && !this.state.isAcknowledged){
+                         if(moment(this.refs.dos.value).format("YYYY-MM-DD")  <= moment().format("YYYY-MM-DD")){
+                            success = false;
+                            showErrorsForInput(this.refs.dos, ["Should be greater than Current day"]);
+                            this.refs.dos.focus();
+                         }
+                         else{
+                            showErrorsForInput(this.refs.dos, null);
+                         }
+                    }
+                    else{
+                        if(this.state.ActionType.value == "InProcess" && !this.state.isAcknowledged){
+                            if(moment(this.refs.dos.value).format("YYYY-MM-DD")  !== moment().format("YYYY-MM-DD")){
+                                success = false;
+                                showErrorsForInput(this.refs.dos, ["Should be equal to current day"]);
+                                this.refs.dos.focus();
+                             }
+                             else{
+                                showErrorsForInput(this.refs.dos, null);
+                             }
+                        }
+                     }
+                    }
+             
+                    // if(this.state.ActionType.value == "Pending")
+                    // {
+                    //    if(this.refs.dos.value <= moment().format("YYYY-MM-DD"))
+                    //    {
+                    //     success = false;
+                    //     showErrorsForInput(this.refs.dos, ["Should be greater than Current day"]);
+                    //     this.refs.dos.focus();
+                    //    }
+                    // }
+                    // else{
+                    //     showErrorsForInput(this.refs.dos, []);
+                    // }
 
                 if (validate.single(this.refs.doc.value, { presence: true }) !== undefined) {
                     success = false;
@@ -1001,15 +1069,13 @@ class ViewTask extends Component{
                                showErrorsForInput(this.refs.quantityWorked, []);
                            }
                         }
-   
                      }
-                    
                 }
 
             }
 
             if (this.state.isAcknowledged) {
-
+             if(this.state.ActionType.value!=="Assign" ){
                 if (this.refs.hoursWorked.value === "") {
                     success = false;
                     showErrorsForInput(this.refs.hoursWorked, ["Please enter number of hours worked"]);
@@ -1038,23 +1104,61 @@ class ViewTask extends Component{
                 else {
                     showErrorsForInput(this.refs.hoursWorked, []);
                 }
+             }
 
-                if(this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 && this.state.ActionType.value!=="Assign")
+                if(this.state.ActionType.value!=="Assign" && this.state.ActionType.value !=="Resolved")
                 {
-                   if ( this.refs.quantityWorked.value!="" && parseFloat(this.refs.quantityWorked.value)<=0){
-                     success= false;
-                     showErrorsForInput(this.refs.quantityWorked,["Should be greater than 0"]);
-                     if(isSubmit){
-                       this.refs.quantityWorked.focus();
-                       isSubmit = false;
-                     }
-                }
+                    if(this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 )
+                    {
+                       if ( this.refs.quantityWorked.value!="" && parseFloat(this.refs.quantityWorked.value)<=0){
+                         success= false;
+                         showErrorsForInput(this.refs.quantityWorked,["Should be greater than 0"]);
+                         if(isSubmit){
+                           this.refs.quantityWorked.focus();
+                           isSubmit = false;
+                         }
+                    }
+
+                    else{
+                         showErrorsForInput(this.refs.quantityWorked,[]);
+                      }
+                    }
+                } 
                 else{
-                     showErrorsForInput(this.refs.quantityWorked,[]);
-                  }
+                     if(this.state.TaskInfo["Quantity"]!=null && this.state.TaskInfo["Quantity"]!=0 )
+                     {
+
+                        var quantityToBeWorked = (parseInt(budgetedQuantity) - parseInt(this.state.PreviouslyWorkedQuantity));                       
+
+                         if ( this.refs.quantityWorked.value!="" && parseFloat(this.refs.quantityWorked.value)> this.state.TaskInfo["Quantity"]){
+                           success= false;
+                           showErrorsForInput(this.refs.quantityWorked,["Should not be greater than budgeted quantity"]);
+                           if(isSubmit){
+                           this.refs.quantityWorked.focus();
+                           isSubmit = false;
+                           }
+                         }
+
+                        if(parseInt(quantityToBeWorked)>0 && this.state.ActionType.value =="Resolved")
+                        {
+                            var currentWorkedQuantity= this.refs.quantityWorked.value;
+                            if(currentWorkedQuantity==""|| currentWorkedQuantity < quantityToBeWorked)
+                            {
+                                success= false;
+                                showErrorsForInput(this.refs.quantityWorked,["You havent completed budgeted quantity"]);
+                                if(isSubmit){
+                                this.refs.quantityWorked.focus();
+                                isSubmit = false;
+                                }
+                            }
+                            else{
+                                showErrorsForInput(this.refs.quantityWorked,null);
+                            }
+                        }
+                       }
                 }
             }
-        }
+          }
 
         var content = this.state.Description.getCurrentContent();
 

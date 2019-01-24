@@ -65,9 +65,22 @@ class AssigneesList extends Component{
                               </div>
                             </div>
                           </div>
-
-                          <div className="col-md-4">
-                           <label >Quantity </label>
+                          {
+                          this.props.TaskId!="" ?
+                             this.state.BudgetedQuantity!="" && this.state.BudgetedQuantity!=null ? 
+                           <div className="col-md-4">
+                            <label >Quantity </label>
+                            <div className="form-group">
+                              <div className="input-group">
+                              <span className="input-group-addon"> </span>
+                               <input type="number" className="form-control" ref="quantity" placeholder="Quantity" value={ele["Quantity"]} onChange={this.QuantityChanged.bind(this,i)} />
+                              </div>
+                             </div>
+                           </div>
+                            :  <div />  
+                           :
+                           <div className="col-md-4">
+                            <label >Quantity </label>
                             <div className="form-group">
                               <div className="input-group">
                               <span className="input-group-addon"> </span>
@@ -75,6 +88,8 @@ class AssigneesList extends Component{
                               </div>
                            </div>
                           </div>
+                          }
+      
                           <div className="col-md-1" style={{marginTop: '6%'}}>
                             <span style={{ width: '0.5%', color:'red'}} title="Remove" className="glyphicon glyphicon-trash" value="close" onClick={this.RemoveAssignee.bind(this,i)} ></span>
                         </div>
