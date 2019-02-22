@@ -175,10 +175,18 @@ hr {
     border-color: #e8e6e6;
 }
 
-.tasklog{
-    border: 1px solid #dc7177;
+.tasklogOdd{
+    border: 3px solid #ea7ed8;
     padding: 5px;
     margin-bottom: 1px;
+    border-radius: 20px;
+}
+
+.tasklogEven {
+    border: 3px solid #72b2de;
+    padding: 5px;
+    margin-bottom: 1px;
+    border-radius: 20px;
 }
 
 .reportHeader{
@@ -186,4 +194,29 @@ hr {
     text-align: center;
     color: #ab1862;
     font-weight: bold;
+}
+.reportHeading{
+    color: #fbb8b8;
+}
+
+.react-bs-container-body{
+    font-size: 12px;
+    line-height: 1.42857143;
+    color: #333;
+}
+
+.notClockedIn{
+    background-color: rgb(255, 230, 230) !important
+}
+
+.mTop2{
+    margin-top: 2%;
+}
+.taskDetailcss{
+    width: 91%;
+    margin: 5%;
+}
+
+.taskCompleted{
+    background-color: rgb(220, 250, 220);
 }

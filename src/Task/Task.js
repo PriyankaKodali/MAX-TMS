@@ -43,7 +43,6 @@ class Task extends Component {
 
     componentWillMount() {
         
-
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
         this.setState({OrgId: orgId})
 
@@ -100,8 +99,7 @@ class Task extends Component {
         return (
             <div style={{ overflow: 'hidden' }}>
                 <form onSubmit={this.handleSubmit.bind(this)} onChange={this.validate.bind(this)}  >
-                    <div className="taskContainer" >
-
+                    <div className="myContainer" >
                         <div className="col-xs-12">
                             <div className="col-md-2 form-group">
                                 <div className="col-md-2 form-group" >
@@ -119,7 +117,6 @@ class Task extends Component {
                                     </label>
                                 </div>
                             </div>
-
                             {
                                 this.state.isClientTask === true ?
                                     <div>
@@ -149,9 +146,7 @@ class Task extends Component {
                                     </div>
                                     :
                                     <div />
-
                             }
-
                             {
                                 this.state.isOffcTask === true ?
                                     <div className="col-md-3">
@@ -391,8 +386,6 @@ class Task extends Component {
       this.setState({isServiceTask: true, isProjectTask: false},()=>{
         showErrorsForInput(this.refs.project.wrapper, null);
       });
-   
-      
     }
 
     AssigneeChanged(val){
@@ -546,7 +539,6 @@ class Task extends Component {
             else{
                 showErrorsForInput(this.refs.project.wrapper, null);
             }
-           
         }
     }
 

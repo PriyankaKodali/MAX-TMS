@@ -6,6 +6,7 @@ import registerServiceWorker from './registerServiceWorker';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import { Router, Route, IndexRoute } from 'react-router';
+import { matchPath } from 'react-router'
 import { HashRouter } from 'react-router-dom';
 import 'react-select/dist/react-select.css';
 import $ from 'jquery';
@@ -21,6 +22,9 @@ import MIMICUser from './MIMICUser/MIMICUser';
 import Report from './Reports/Report';
 import Maps from './Reports/Maps/Maps'
 import LogReport from './Reports/LogReport';
+import MyReport from './Reports/MyReport';
+import Opportunity from './Opportunity/Opportunity';
+import LeadsList from './Opportunity/LeadsList';
 
 import 'froala-editor/js/froala_editor.pkgd.min.js';
 import 'bootstrap-fileinput/js/plugins/piexif.min.js';
@@ -32,7 +36,9 @@ import Project from './MaterialRequest/Project';
 import StockRequests from './MaterialRequest/StockRequests';
 import EditStockRequest from './MaterialRequest/EditStockRequest';
 import StockReport from './StockReport/StockReport';
-
+import OpportunityDetail from './Opportunity/OpportunityDetail';
+import AttendanceReport from './Reports/AttendanceReport';
+import DayReport from './Reports/DayReport';
 
 window.jQuery = window.$ = require("jquery");
 var bootstrap = require('bootstrap');
@@ -61,6 +67,12 @@ ReactDOM.render((
                 <Route exact path="/StockReport" render={(nextState)=>requireAuth(nextState, <StockReport  location={nextState.location} match={nextState.match} history={nextState.history}/>)} />
                 <Route exact path="/EmployeesLocationMap" render ={(nextState)=>requireAuth(nextState, <Maps location={nextState.location} match={nextState.match} history={nextState.history} /> )} />
                 <Route exact path="/LogReport" render={(nextState)=>requireAuth(nextState, <LogReport location={nextState.location} match={nextState.match} history={nextState.history} />)} />
+                <Route exact path="/MyReport" render={(nextState)=>requireAuth(nextState, <MyReport location={nextState.location} match={nextState.match} history={nextState.history} /> )} />
+                <Route exact path="/Opportunity" render={(nextState)=> requireAuth(nextState, <Opportunity location={nextState.location} match = {nextState.match} history={nextState.history} />)} />
+                <Route exact path="/LeadsList" render ={(nextState)=> requireAuth(nextState, <LeadsList location={nextState.location} history={nextState.history} match={nextState.match}/>)} />
+                <Route exact path="/OpportunityDetail/:id" render={(nextState)=>requireAuth(nextState, <OpportunityDetail location={nextState.location} match={nextState.match} history={nextState.history}  />)} />
+                <Route exact path="/AttendanceReport" render={(nextState)=>requireAuth(nextState, <AttendanceReport history={nextState.history} match={nextState.match} location={nextState.location} />)} />
+                <Route exact path="/DayReport" render={(nextState)=>requireAuth(nextState, <DayReport history={nextState.history} match={nextState.match} location={nextState.location} />)} />
             </App>
         </div>
     </HashRouter>
@@ -68,7 +80,6 @@ ReactDOM.render((
 ),
     document.getElementById('root')
 );
-
 
 function requireAuth(nextState, component) {
     var isLoggedIn = sessionStorage.getItem("access_token") != null;
@@ -80,4 +91,3 @@ function requireAuth(nextState, component) {
         return component;
     }
 }
-

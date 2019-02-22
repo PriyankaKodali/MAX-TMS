@@ -47,14 +47,20 @@ class App extends Component {
                                 <div className="collapse navbar-collapse" id="myNavbar">
 
                                     <ul className="nav navbar-nav navbar-right navbar-menu" >
-
-
                                         {
                                             window.isLoggedIn && roles.indexOf("Admin") != -1 || window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
                                                 <li><a className="pointer navbar-menu-item" onClick={this.addNewClick.bind(this)} >Add New</a></li>
                                                 :
                                                 ""
                                         }
+
+                                        {
+                                            window.isLoggedIn && roles.indexOf("Admin") != -1 || window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                <li><a className="pointer navbar-menu-item" onClick={()=>{this.props.history.push("/LeadsList")}} >Lead</a></li>
+                                                :
+                                                ""
+                                        }
+
 
                                         <li className="dropdown pointer">
                                             <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown" > Material Request <span className="caret"></span></a>
@@ -72,23 +78,23 @@ class App extends Component {
                                         <li className="dropdown pointer">
                                             <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown"> Task Tracker <span className="caret"></span> </a>
                                             <ul className="dropdown-menu">
-                                                <li><a onClick={() => { this.props.history.push("/TaskDashBoard") }} > My Dashboard</a></li>
                                                 {
                                                     window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ||  window.isLoggedIn && roles.indexOf("Admin") != -1 ?
-
-                                                        <li> <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
+                                                        <li> 
                                                             <a onClick={() => { this.props.history.push("/Report") }} >Activities Report</a>
-                                                            {/* {
-                                                                window.isLoggedIn && roles.indexOf("SuperAdmin") != -1? */}
-                                                                <a onClick={() => { this.props.history.push("/LogReport") }} > Activity Log Report</a> 
-                                                               
+                                                            <a onClick={() => { this.props.history.push("/LogReport") }} > Activities Log Report</a> 
+                                                            <a onClick={()=>{this.props.history.push("/AttendanceReport")}}> Attendance Report </a>
+                                                            <a onClick={()=> {this.props.history.push("/DayReport")}}> Day Report </a>
                                                             <a onClick={() => { this.props.history.push("/EmployeesLocationMap") }} >Employee Location Report</a>
+                                                            <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
                                                         </li>
                                                         :
                                                         <li />
                                                 }
-                                              
-
+                                                 <li><a onClick={() => { 
+                                                     window.location.reload();
+                                                     this.props.history.push("/TaskDashboard")}} > My Dashboard</a></li>
+                                                <li>  <a onClick={()=>{this.props.history.push("/MyReport")}}> My Report </a>  </li>
                                             </ul>
                                         </li>
 
