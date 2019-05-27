@@ -47,39 +47,43 @@ class CreatedByMe extends Component {
     constructor(props) {
         super(props);
        
-        var searchCriteria = {user:'',client:'', department:'',taskType:'', priority:null, status:'', sortCol:'', sortDir:'', taskCategory:'' }
-        
         this.state = {
             TasksByMe: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, isDataAvailable: true,
             TaskByMeSummary:[], sortCol: 'CreatedDate' , sortDir: 'desc',showTaskByMe: true,
-            Client:'', Department:'',TaskFrom:'', Priority:null, Status:'', searchCriteria: searchCriteria
+            Client:'', Department:'',TaskFrom:'', Priority:null, Status:'', 
+            SearchCriteria: this.props.SearchCriteria,
         }
     }
 
     componentWillMount() {
-        this.setState({Client: this.props.Client , Department: this.props.Department, 
-                        TaskFrom: this.props.TaskFrom, Priority: this.props.Priority,
-                         Status: this.props.Status  },()=>{
-                            this.GetTasksByMe(this.state.currentPage, this.state.sizePerPage)
-                         })
+        this.setState({
+            Client: this.props.SearchCriteria.client, Priority: this.props.SearchCriteria.priority,
+            Department: this.props.SearchCriteria.department, Status: this.props.SearchCriteria.status,
+            EmpId: this.props.SearchCriteria.empId, TaskFrom: this.props.SearchCriteria.taskFrom
+        }, () => {
+            this.GetTasksCreatedByMe(this.state.currentPage, this.state.sizePerPage)
+        })
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({Client: nextProps.Client , Department: nextProps.Department, 
-            TaskFrom: nextProps.TaskFrom, Priority: nextProps.Priority,
-             Status: nextProps.Status  },()=>{
-                this.GetTasksByMe(this.state.currentPage, this.state.sizePerPage)
-             })
+        this.setState({
+            Client: nextProps.SearchCriteria.client, Priority: nextProps.SearchCriteria.priority,
+            Department: nextProps.SearchCriteria.department, Status: nextProps.SearchCriteria.status,
+            EmpId: nextProps.SearchCriteria.empId, TaskFrom: nextProps.SearchCriteria.taskFrom,
+            sortCol: this.state.sortCol, sortDir: this.state.sortDir
+        }, () => {
+            this.GetTasksCreatedByMe(this.state.currentPage, this.state.sizePerPage)
+        })
     }
+ 
+    GetTasksCreatedByMe(page, count) {
 
-    GetTasksByMe(page, count) {
-     
-        var url = ApiUrl + "/api/Activities/GetTasksByMe?EmpId=" +this.props.EmpId+
-            "&clientId=" + this.state.Client+
-            "&departmentId=" + this.state.Department+
-            "&taskType=" +  this.state.TaskFrom+
-            "&priority=" + this.state.Priority  +
-            "&status=" +  this.state.Status +
+        var url = ApiUrl + "/api/Activities/GetTasksByMe?EmpId=" + this.state.EmpId +
+            "&clientId=" + this.state.Client +
+            "&departmentId=" + this.state.Department +
+            "&taskType=" + this.state.TaskFrom +
+            "&priority=" + this.state.Priority +
+            "&status=" + this.state.Status +
             "&page=" + page + "&count=" + count +
             "&sortCol=" + this.state.sortCol +
             "&sortDir=" + this.state.sortDir
@@ -88,17 +92,17 @@ class CreatedByMe extends Component {
             url,
             (data) => {
                 this.setState({
-                    TasksByMe: data["tasksByMe"], dataTotalSize: data["totalPages"],
+                    CreatedByMe: data["tasksByMe"], dataTotalSize: data["totalPages"],
                     TaskByMeSummary: data["actSummary"],
                     currentPage: page, sizePerPage: count, IsDataAvailable: true
                 })
             },
-
             (error) => toast(error.responseText, {
                 type: toast.TYPE.ERROR
             }), "GET", null
         )
     }
+
 
     render() {
         return (
@@ -108,7 +112,7 @@ class CreatedByMe extends Component {
                         <h3 className="col-xs-12 formheader"> Tasks Created Me
                             <span className="job-summary-strip">
                                 <span> Total Tasks :  {this.state.TaskByMeSummary["TotalJobs"]} |  </span>
-                                <span>High :  {this.state.TaskByMeSummary["PriorityHighJobs"]} |</span>
+                                <span> High :  {this.state.TaskByMeSummary["PriorityHighJobs"]} |</span>
                                 <span> Medium :  {this.state.TaskByMeSummary["PriorityMediumJobs"]} | </span>
                                 <span> Low : {this.state.TaskByMeSummary["PriorityLowJobs"]} </span>
                             </span>
@@ -123,7 +127,7 @@ class CreatedByMe extends Component {
                         <div className="col-xs-12" >
                             <BootstrapTable striped hover remote={true} pagination={true} trClassName={trClassFormat}
                                 fetchInfo={{ dataTotalSize: this.state.dataTotalSize }}
-                                data={this.state.TasksByMe}
+                                data={this.state.CreatedByMe}
                                 options={{
                                     sizePerPage: this.state.sizePerPage,
                                     onPageChange: this.taskByMePageChange.bind(this),
@@ -169,7 +173,7 @@ class CreatedByMe extends Component {
 
         var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId");
           
-        var criteria= this.state.searchCriteria;
+        var criteria= this.state.SearchCriteria;
         
         criteria.user= currentLogin;
         criteria.client= this.state.Client;
@@ -180,6 +184,7 @@ class CreatedByMe extends Component {
         criteria.sortCol= this.state.sortCol;
         criteria.sortDir= this.state.sortDir;
         criteria.taskCategory = "ByMe";
+        criteria.screen = "Others";
           
         SearchCriteria(criteria);
         

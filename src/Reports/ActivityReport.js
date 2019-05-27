@@ -17,7 +17,7 @@ var ReactBSTable = require('react-bootstrap-table');
 var BootstrapTable = ReactBSTable.BootstrapTable;
 var TableHeaderColumn = ReactBSTable.TableHeaderColumn;
 
-class Report extends Component {
+class ActivityReport extends Component {
 
     constructor(props) {
         super(props);
@@ -26,21 +26,13 @@ class Report extends Component {
             Clients: [], EmployeesList: [], EmployeeTaskReport: [], Priority: null, Status: 'NotResolved',
             SearchClick: false, EmpTasksReport: [], EmployeeName: null, RecordsAvailable: true,
             TotalCount: null, TaskPriority: null, TaskId: '', ToDate: null, FromDate: null, ReportData: [],
-            EmployeeTaskData: [], isEmployeeChecked: true, isClientChecked: false
+            EmployeeTaskData: [], isEmployeeChecked: true, isClientChecked: false,
+            Categories: [], Category: null,EmpSelectionDisabled: false
         }
     }
 
     componentWillMount() {
-
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
-
-        // MyAjax(
-        //     ApiUrl + "/api/MasterData/GetEmployeesForTaskAllocation?creatorId=" + '' + "&orgId=" + orgId,
-        //     (data) => { this.setState({ Employees: data["employees"] }) },
-        //     (error) => toast(error.responseText, {
-        //         type: toast.TYPE.ERROR
-        //     })
-        // )
 
         $.ajax({
             url: ApiUrl + "/api/MasterData/GetAllEmployeesWithAspNetUserId?orgId=" + orgId,
@@ -54,35 +46,61 @@ class Report extends Component {
             success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
 
-        var url = ApiUrl + "/api/Activities/GetEmployeesReport?empId=" + this.state.Employee +
-            "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-            "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId
-        MyAjax(
-            url,
-            (data) => {
-                this.setState({
-                    ReportData: data["reportData"], SearchClick: true, IsDataAvailable: true
-                })
-            },
-            (error) => toast(error.responseText, {
-                type: toast.TYPE.ERROR
-            }), "GET", null
-        )
+        $.ajax({
+            url: ApiUrl + "/api/MasterData/GetCategories?deptId=" + 9,
+            type: "get",
+            success: (data) => { this.setState({ Categories: data["categories"] }) }
+        })
+
+        if (this.props.location.state) {
+            var empId = this.props.location.state["empId"];
+            var clientId = this.props.location.state["clientId"];
+            var status = this.props.location.state["status"];
+            var isEmployeeChecked = this.props.location.state["empId"] != '' ? true : false;
+            var isClientChecked = this.props.location.state["clientId"] != '' ? true : false;
+            var category = this.props.location.state["catId"];
+            var empSelectionDisabled= sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1  ? false: true
+         
+            if (!isEmployeeChecked && !isClientChecked) {
+                isEmployeeChecked = true;
+            }
+
+            this.setState({
+                Employee: empId, Client: clientId, FromDate: this.props.location.state["fromDate"],
+                ToDate: this.props.location.state["toDate"], isEmployeeChecked: isEmployeeChecked,
+                isClientChecked: isClientChecked, Status: status, Category: category,
+                EmpSelectionDisabled: empSelectionDisabled
+            }, () => {
+                this.GetActivityReport();
+            })
+        }
+        else {
+            var empSelectionDisabled= sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1  ? false: true;
+           var  employee=sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1  ? '': sessionStorage.getItem("EmpId")
+            this.setState({
+                EmpSelectionDisabled: empSelectionDisabled,
+                Employee: employee
+            },()=>{
+                this.GetActivityReport();
+            })
+          
+        }
     }
 
-
-    GetEmployeeReport() {
+    GetActivityReport() {
         var url = ""
 
         if (this.state.isEmployeeChecked) {
-            url = ApiUrl + "/api/Activities/GetEmployeesReport?empId=" + this.state.Employee +
+            url = ApiUrl + "/api/Reports/GetEmployeesReport?empId=" + this.state.Employee +
                 "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId;
+                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId +
+                "&catId=" + this.state.Category;
         }
         else {
-            url = ApiUrl + "/api/Activities/GetClientWiseReport?empId=" + this.state.Employee +
+            url = ApiUrl + "/api/Reports/GetClientWiseReport?empId=" + this.state.Employee +
                 "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId;
+                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId +
+                "&catId=" + this.state.Category
         }
 
         MyAjax(
@@ -103,7 +121,6 @@ class Report extends Component {
     render() {
         return (
             <div className="myContainer">
-
                 <form onSubmit={this.handleSearchClick.bind(this)} onChange={this.validate.bind(this)}>
                     <div className="SearchContainerStyle">
                         <div className="col-xs-12">
@@ -117,7 +134,7 @@ class Report extends Component {
                                         <span className="input-group-addon">
                                             <span className="glyphicon glyphicon-user"></span>
                                         </span>
-                                        <Select className="form-control" ref="employee" placeholder="Select Employee" name="Employee" value={this.state.Employee} options={this.state.Employees} onChange={this.EmployeeChanged.bind(this)} />
+                                        <Select className="form-control" ref="employee" placeholder="Select Employee" name="Employee" value={this.state.Employee} disabled={this.state.EmpSelectionDisabled} options={this.state.Employees} onChange={this.EmployeeChanged.bind(this)} />
                                     </div>
                                 </div>
                             </div>
@@ -200,6 +217,16 @@ class Report extends Component {
                                     </div>
                                 </div>
                             </div>
+                            <div className="col-md-3">
+                                <div className="form-group">
+                                    <div className="input-group">
+                                        <span className="input-group-addon"></span>
+                                        <Select className="form-control" placeholder="Select Category" ref="category" options={this.state.Categories} value={this.state.Category} onChange={this.categoryChanged.bind(this)} />
+
+                                    </div>
+
+                                </div>
+                            </div>
 
                             <div className="col-md-2 form-group" key={this.state.isEmployeeChecked}  >
                                 <div className="col-md-2 form-group" key={this.state.isEmployeeChecked} >
@@ -225,7 +252,6 @@ class Report extends Component {
                         </div>
                     </div>
                 </form>
-
                 {
                     this.state.IsDataAvailable == true ?
                         this.state.ReportData.length > 0 ?
@@ -233,14 +259,10 @@ class Report extends Component {
                                 {
                                     this.state.ReportData.map((ele, i) => {
                                         return (
-                                            <div className="panel panel-primary" key={ele["Task"]}>
+                                            <div className="panel panel-primary" key={ele["TaskOwnerId"]}>
 
                                                 <div className="panel-heading" >
                                                     <h6 className="panel-title panelHeading" >
-                                                        {/* <a onClick={() => { 
-                                                        this.gotoEmployeeActivitiesReport(ele["TaskOwnerId"], ele["TaskOwner"], ele["Task"], "") }}> {ele["TaskOwner"].toUpperCase()
-                                                        } </a> */}
-
                                                         {ele["Client"] != null ?
                                                             <a onClick={() => { this.gotoEmployeeActivitiesReport(ele["Client_Id"], ele["Client"], ele["Task"], "") }}> {ele["Client"].toUpperCase()} </a>
                                                             :
@@ -251,10 +273,10 @@ class Report extends Component {
                                                 </div>
 
                                                 <div id={this.state.EmployeesList} className="panel-collapse collapse in" >
-                                                    <div className="panel-body Reportpanel-body" key={ele["Task"]}>
+                                                    <div className="panel-body Reportpanel-body" >
                                                         {
                                                             <table className="table table-condensed table-bordered actionTable mytable">
-                                                                <tbody>
+                                                                <thead>
                                                                     <tr >
                                                                         <th style={{ width: '7%' }} > TaskId</th>
                                                                         <th style={{ width: '7%' }}> TaskDate </th>
@@ -270,9 +292,11 @@ class Report extends Component {
                                                                         <th data-toggle="tooltip" title="Completed Date" style={{ width: '7%' }}> CD </th>
                                                                         <th style={{ textAlign: 'center' }} title="TAT(in Days)"> TAT </th>
                                                                     </tr>
+                                                                </thead>
+                                                                <tbody>
                                                                     {ele["Task"].map((e, y) => {
                                                                         return (
-                                                                            <tr style={{ paddingLeft: '2%' }} className={this.getTaskStyle(e["EDOC"], e["CompletedDate"], e["Status"])} key={y} onClick={() => { this.handleClick(ele["TaskOwnerId"], ele["TaskOwner"], ele["Task"], e["TaskId"]) }}>
+                                                                            <tr style={{ paddingLeft: '2%' }} className={this.getTaskStyle(e["EDOC"], e["CompletedDate"], e["Status"])} key={e["TaskId"]} onClick={() => { this.handleClick(ele["TaskOwnerId"], ele["TaskOwner"], ele["Task"], e["TaskId"]) }}>
                                                                                 <td style={{ width: '6%' }}> {e["TaskId"]} </td>
                                                                                 <td style={{ width: '7%' }}> {moment(e["CreatedDate"]).format("DD-MMM-YYYY")} </td>
                                                                                 <td> {e["Department"] !== null ? e["Department"] : e["Client"]}</td>
@@ -286,7 +310,7 @@ class Report extends Component {
                                                                                 <td style={{ textAlign: 'center' }}> {e["HoursWorked"] > 0 ? e["HoursWorked"] : " "}</td>
                                                                                 <td style={{ width: '7%' }}> {e["CompletedDate"] != null ? moment(e["CompletedDate"]).format("DD-MMM-YYYY") : " "}   </td>
                                                                                 <td style={{ color: 'red', textAlign: 'center' }}>
-                                                                                    {/* {this.DelayInDaysCount(e["EDOC"], e["CompletedDate"], e["TaskResolvedDate"], e["Status"])}    */}
+                                                                                    {this.DelayInDaysCount(e["EDOC"], e["CompletedDate"], e["TaskResolvedDate"], e["Status"])}
                                                                                 </td>
                                                                             </tr>
                                                                         )
@@ -343,11 +367,11 @@ class Report extends Component {
                                     {
                                         this.state.EmployeeTaskData.map((ele, i) => {
                                             return (
-                                                <div >
+                                                <div key={i}>
                                                     <h4 className="col-xs-12"> Task {ele["TaskId"]} Details : </h4>
 
                                                     <table className="table table-condensed table-bordered actionTable mytable">
-                                                        <tbody>
+                                                        <thead>
                                                             <tr >
                                                                 <th style={{ width: '10%' }}> Created By</th>
                                                                 <th style={{ width: '15%' }}> Created date</th>
@@ -357,6 +381,8 @@ class Report extends Component {
                                                                 <th> Description</th>
                                                                 <th>Status</th>
                                                             </tr>
+                                                            </thead>
+                                                            <tbody>
                                                             <tr>
                                                                 <td> {ele["CreatedBy"]} </td>
                                                                 <td>  {moment(ele["CreatedDate"]).format("DD-MMM-YYYY")} </td>
@@ -371,23 +397,11 @@ class Report extends Component {
                                                                 </td>
                                                                 <td>{ele["Status"]}</td>
                                                             </tr>
-
-                                                            {/* {
-                                                                ele["TaskType"] === "Client" ?
-                                                                    <tr>
-                                                                        <th style={{ width: '15%' }}> Location </th>
-                                                                        <td colspan={4}> {ele["Location"]} </td>
-                                                                    </tr>
-
-                                                                    :
-                                                                    ""
-                                                            } */}
-
                                                         </tbody>
                                                     </table>
                                                     <div className="col-xs-12" />
                                                     <table className="table table-condensed table-bordered actionTable mytable">
-                                                        <tbody>
+                                                        <thead>
                                                             <tr>
                                                                 <th style={{ width: '12.5%' }}> TaskDate</th>
                                                                 <th> Assigned by</th>
@@ -396,11 +410,13 @@ class Report extends Component {
                                                                 <th> Status</th>
                                                                 <th> HoursWorked</th>
                                                             </tr>
+                                                        </thead>
+                                                        <tbody>
 
                                                             {
                                                                 ele["TaskLog"].map((el, j) => {
                                                                     return (
-                                                                        <tr key={el["Id"]} >
+                                                                        <tr key={el["TaskLogId"]} >
                                                                             <td> {moment(el["TaskLogDate"]).format("DD-MMM-YYYY hh:mm a")}</td>
                                                                             <td> {el["TaskLogAssignedBy"]}</td>
                                                                             <td style={{ width: '50%', paddingTop: '0px' }}>
@@ -479,6 +495,7 @@ class Report extends Component {
                     </div>
                 </div>
 
+
             </div>
         )
     }
@@ -490,24 +507,6 @@ class Report extends Component {
     EmployeeWiseReportClick() {
         this.setState({ isEmployeeChecked: true, isClientChecked: false })
     }
-
-    // FromDateChanged(){
-    //     if(this.refs.fromDate.value!=""){
-    //         this.setState({FromDate: moment.format(this.refs.fromDate.value).format("YYYY-MM-DD") })
-    //     }
-    //     else{
-    //         this.setState({FromDate:null})
-    //     }
-    // }
-
-    // ToDateChanged(){
-    //     if(this.refs.toDate.value!=""){
-    //         this.setState({ToDate: moment.format(this.refs.toDate.value).format("YYYY-MM-DD") })
-    //     }
-    //     else{
-    //         this.setState({ToDate:null})
-    //     }
-    // }
 
     gotoChangeContent(content) {
 
@@ -677,6 +676,15 @@ class Report extends Component {
         }
     }
 
+    categoryChanged(val) {
+        if (val) {
+            this.setState({ Category: val })
+        }
+        else {
+            this.setState({ Category: null })
+        }
+    }
+
     clearClick() {
         this.state.Priority = null;
         this.state.Status = "NotResolved";
@@ -686,13 +694,13 @@ class Report extends Component {
         this.refs.toDate.value = null;
         this.refs.taskId.value = '';
         this.setState({
-            Priority: null, Status: 'NotResolved', Client: '', Employee: ''
+            Priority: null, Status: 'NotResolved', Client: '', Employee: '', FromDate: '', ToDate: ''
         }, () => {
             showErrorsForInput(this.refs.fromDate, null);
             showErrorsForInput(this.refs.toDate, null);
             showErrorsForInput(this.refs.taskId, null);
 
-            this.GetEmployeeReport();
+            this.GetActivityReport();
         })
     }
 
@@ -730,9 +738,10 @@ class Report extends Component {
                 Status: this.state.Status,
                 Priority: this.state.Priority,
                 IsDataAvailable: false,
-                TaskId: this.refs.taskId.value
+                TaskId: this.refs.taskId.value,
+                Category: this.state.Category != null ? this.state.Category.value : null
             }, () => {
-                this.GetEmployeeReport();
+                this.GetActivityReport();
             })
         }
     }
@@ -806,6 +815,6 @@ class Report extends Component {
 
 }
 
-export default Report;
+export default ActivityReport;
 
 

@@ -47,16 +47,7 @@
   background-color:lightblue;
   background-image: none;
 }
-
-/* .my-nav-bar{
-  background: #fff!important;
-  position: absolute;
-  top:0;
-  box-shadow: 0 -1px 5px #000;
-  z-index: 2;
-  font-size: 17px;
-  width: 100%;
-} */
+ 
 
 nav> .navbar .navbar-inverse{
   background-color: #3a3a3a;
@@ -66,15 +57,7 @@ nav> .navbar .navbar-inverse{
   float: right !important;
   margin-right: -15px;
   font-weight: 700;
-}
-
-/* .navbar {
-  background-color: #444!important;
-  border-color: #444!important;
-  margin-bottom: 0!important;
-  border-radius: 0!important;
-  font-family: poppins,Open Sans,sans-serif!important;
-} */
+} 
 
 .navbar {
   background-color: #4f5e6b!important;
@@ -99,7 +82,7 @@ nav> .navbar .navbar-inverse{
 }
 
 .btnClose{
-  margin-right: 4%;
+  margin-right: 1%;
   width: 30px; 
   background: white;
   height: 30px; 
@@ -131,10 +114,332 @@ nav> .navbar .navbar-inverse{
   height: 41px;
 }
 
+.notificationContainer{
+  position: absolute;
+  margin-left: 7.5%;
+  margin-top: 1%;
+  margin-right: 18.5%;
+  border: 1pt solid #b5b5b5;
+  border-radius: 42px;
+  padding: 5px;
+}
+
+ 
+.navbar-left {
+  float: left !important;
+  margin-right: -15px;
+  font-weight: 700;
+}
+
+.pTop6{
+  padding-top: 6px;
+}
+
+.headerIconStyle{
+  font-size:25px; 
+  cursor:pointer;
+   color:white;
+}
+ 
+
+.logoMini {
+  height: 40px;
+  width: 44px;
+  background-color: #fff;
+}
+ 
+
+.main-header .navbar {
+  margin-bottom: 0px;
+  margin-left: 230px;
+  min-height: 50px;
+  transition: margin-left 0.3s ease-in-out 0s;
+  border-width: initial;
+  border-style: none;
+  border-color: initial;
+  border-image: initial;
+  border-radius: 0px;
+}
+
+.navbar-static-top {
+  z-index: 1000;
+  border-width: 0px 0px 1px;
+}
 
 
+.main-header {
+  position: relative;
+  max-height: 100px;
+  z-index: 1030;
+  color: white;
+  background-color: #4f5e6b!important;
+}
+
+.main-header .navbar {
+  margin-bottom: 0px;
+  margin-left: 230px;
+  min-height: 50px;
+  transition: margin-left 0.3s ease-in-out 0s;
+  border-width: initial;
+  border-style: none;
+  border-color: initial;
+  border-image: initial;
+  border-radius: 0px;
+}
+
+.navbar-static-top {
+  z-index: 1000;
+  border-width: 0px 0px 1px;
+}
+ 
+
+ .main-header .navbar .sidebar-toggle {
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.main-header .navbar-custom-menu  {
+  float: right;
+  display: block;
+  box-sizing: border-box;
+}
+
+.navbar-nav {
+  float: left;
+  margin: 0px;
+}
+.pointer {
+  cursor: pointer;
+} 
+.dropdown, .dropup {
+  position: relative;
+  box-sizing: border-box;
+}
+.navbar-custom-menu > .navbar-nav > li {
+  position: relative;
+}
+.navbar-nav > li {
+  float: left;
+}
+
+.navbar-nav > li > .dropdown-menu {
+  margin-top: 0;
+  margin-left: -35px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.main-sidebar {
+  position: fixed;
+  top: 0px;
+ 
+  padding-top: 50px;
+  min-height: 100%;
+  width: 230px;
+  z-index: 810;
+  transition: transform 0.3s ease-in-out 0s, width 0.3s ease-in-out 0s;
+  /* background-color: rgb(34, 45, 50); */
+  background-color: #4f5e6b!important;
+  display: block;
+  box-sizing: border-box;
+}
+
+.sidebar {
+  padding-bottom: 10px;
+  height: auto;
+  box-sizing: border-box;
+}
+.sidebar-menu {
+  list-style: none;
+  margin: 0px;
+  padding: 0px; 
+  overflow: hidden; 
+}
+
+.navbar-custom-menu{
+  display:block;
+}
 
 
+.sidebar-menu > li {
+  position: relative;
+  margin: 0px;
+  padding: 0px;
+}
+ .sidebar-menu > li > .treeview-menu {
+  margin: 0px 1px;
+  background: rgb(44, 59, 65);
+    display: none; 
+  box-sizing: border-box;
+  
+}
+
+.sidebar-menu > li:active > .treeview-menu, .sidebar-menu > li:hover >  .treeview-menu {
+  margin: 0px 1px;
+  background: rgb(44, 59, 65); 
+  box-sizing: border-box;
+  display: block !important;
+}
+
+.treeview-menu > li > a {
+  /* display: none; */
+  display: block;
+  font-size: 14px;
+  padding: 5px 5px 5px 15px;
+  color: rgb(138, 164, 175);
+}
+
+.sidebar-menu li > a {
+  position: relative;
+}
+ 
+
+.treeview-menu {
+  display: none;
+  list-style: none;
+  padding: 0px 0px 0px 5px;
+  margin: 0px; 
+  box-sizing: border-box;
+}
+
+.skin-blue .sidebar-menu > li > .treeview-menu {
+  margin: 0px 1px;
+  background: rgb(44, 59, 65);
+}
+
+.section{
+  display: block;
+}
+
+.linkcursor {
+  cursor: pointer;
+  display: list-item;
+  text-align: -webkit-match-parent;
+  color: ghostwhite;
+    padding: 10px;
+}
+
+.sidebar-menu > li {
+  position: relative;
+  margin: 0px;
+  padding: 0px;
+}
 
 
+.sidebar-menu{
+  list-style: none;
+  box-sizing: border-box;
+}
 
+.sidebar-menu li > a > .pull-right-container {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  margin-top: -7px;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle {
+  color: rgb(255, 255, 255);
+}
+.main-header .sidebar-toggle {
+  float: left;
+  background-color: transparent;
+  background-image: none;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.bg-green{
+  background-color: rgb(19, 54, 19);
+}
+
+.dropdown-content{
+  display: none;
+  background-color: #262626;
+  padding-left: 8px;
+}
+
+.fa-caret-down {
+  float: right;
+  padding-right: 8px;
+}
+
+.dropdown .dropbtn {
+  font-size: 17px;    
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.dropdown-btn {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #818181;
+  display: block;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+
+.sidebar-menu > li:hover > a{
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+}
+
+ 
+.dropdown-menu > li > a:hover {
+  background-color: #3498db;
+  background-image: none;
+  color: white
+}
+
+.dropdown > a:hover{
+  background-color:lightblue;
+  background-image: none;
+}
+
+.dropdown-menu{
+  padding: 0!important;
+  margin-top: 0px;
+  clear: both;
+}
+
+.navbar-menu-item {
+  background-color: transparent!important;
+  color: #f7f2f2!important;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent!important;
+  line-height: 16px;
+}
+.logoMini{
+  width: 44px;
+  background-color: #fff;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.f20{
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.mimicUser{
+  border: 1px solid grey;
+  box-shadow: 1px 1px 2px 0px grey;
+  padding: 50px;
+  margin-top: 5%;
+  border-radius: 4px;
+
+}

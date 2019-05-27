@@ -55,19 +55,25 @@ class ResetPassword extends Component {
 
     handleSubmit(e) {
         e.preventDefault();
+        $(".loaderActivity").show();
+        $("button[name='submit']").hide();
+
         var data = {
             NewPassword: this.refs.password.value.trim(),
             ConfirmPassword: this.refs.conformpwd.value.trim(),
             UserId: this.state.userId,
             Code: this.state.code
         };
-
+         
         let url = ApiUrl + "/api/Account/SetPassword";
+
         $.post(url, data).then(
             (data) => {
                 toast("Password updated succesfully!", {
                     type: toast.TYPE.SUCCESS
                 });
+                $(".loaderActivity").hide();
+                $("button[name='submit']").show();
                 this.props.history.push("/login");
             },
             (error) => {

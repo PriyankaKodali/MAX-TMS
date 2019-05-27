@@ -3,16 +3,15 @@ import './Login.css';
 import $ from 'jquery';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
+import { showErrorsForInput, ValidateForm } from '.././Validation';
 import { ApiUrl } from '../Config';
 
 class Login extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { error : "" }
+        this.state = { error: "" }
     }
-
 
     render() {
         return (
@@ -77,7 +76,7 @@ class Login extends Component {
         try {
             $.post(url, data).done(
                 (data) => {
-                    window.isLoggedIn = true;
+                    window.isLoggedIn = true; 
                     sessionStorage.setItem("access_token", data["access_token"]);
                     sessionStorage.setItem("roles", data["roles"]);
                     sessionStorage.setItem("displayName", data["displayName"]);
@@ -85,13 +84,14 @@ class Login extends Component {
                     sessionStorage.setItem("OrgId", data["orgId"]);
                     sessionStorage.setItem("OrgName", data["orgName"]);
                     sessionStorage.setItem("EmpId", data["empId"]);
-
-                    sessionStorage.getItem("roles").indexOf("SuperAdmin")!==-1 ?
-                     this.props.history.push("/EmployeesLocationMap")
-                     :
-                    this.props.history.push("/TaskDashBoard");
-
+                    sessionStorage.getItem("roles").indexOf("SuperAdmin") !== -1 ?
+                        this.props.history.push("/Dashboard")
+                        :
+                        this.props.history.push("/EmployeeDashBoard");
+                       
+                        window.location.reload(); 
                 }
+                
             ).fail(
                 (error) => {
                     $(".loader").hide();
@@ -112,7 +112,7 @@ class Login extends Component {
                 }
             )
 
-         //   console.log(sessionStorage.getItem("roles"));
+            //   console.log(sessionStorage.getItem("roles"));
         }
         catch (e) {
             toast("An error occoured, please try again!", {

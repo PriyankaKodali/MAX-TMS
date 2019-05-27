@@ -57,6 +57,11 @@
     color: white;
 }
 
+.actionTable > thead>tr>th{
+    background: #526b77;
+    color: white;
+}
+
 .responseDescription-editor-wrapper{
     border: 0px solid #e4dede;
     margin: 0.1em 0;
@@ -195,7 +200,7 @@ hr {
     color: #ab1862;
     font-weight: bold;
 }
-.reportHeading{
+.spanheading{
     color: #fbb8b8;
 }
 

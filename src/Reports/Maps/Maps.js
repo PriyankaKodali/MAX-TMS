@@ -51,7 +51,25 @@ class Maps extends Component {
       this.setState({ hoveredEmployee: $(this).attr("id") });
     });
 
-    this.getDataForDay();
+    if (this.props.location.state) {
+      var view = this.props.location.state["view"];
+      if (view == "UnLogged") {
+        this.GetEmployees();
+      }
+      if (view == "EmpLocationDetail") {
+        var empId = {
+          EmployeeId: this.props.location.state["EmpId"],
+          EmployeeName: this.props.location.state["EmpName"],
+          LastReportedAddress: this.props.location.state["Address"],
+          ClockInTime: this.props.location.state["ClockInTime"],
+          ClockOutTime: this.props.location.state["ClockOutTime"]
+        }
+        this.employeeSelected(empId);
+      }
+    }
+    else {
+      this.getDataForDay();
+    }
   }
 
   clearClicked() {
@@ -105,6 +123,7 @@ class Maps extends Component {
   getEmployeeDayReport() {
     this.setState({ pathCoordinates: [], SelectedEmployeeReport: [] });
     $(".map-loader").show();
+
     var url = ApiUrl + "/api/EmployeeLocation/GetEmployeeLocationData?Date=" +
       moment(this.state.date).format("YYYY-MM-DD") + "&EmployeeId=" + this.state.SelectedEmployee.EmployeeId;
     MyAjax(
@@ -116,6 +135,9 @@ class Maps extends Component {
             // this.state.SelectedEmployeeReport.map((location) => {
             //     bounds.extend(new window.google.maps.LatLng(parseFloat(location.Latitude), parseFloat(location.Longitude)))
             // });
+            var last = this.state.SelectedEmployeeReport.length - 1;
+            var lastRecord = this.state.SelectedEmployeeReport[last];
+
             var pathCoordinates = this.state.SelectedEmployeeReport.map(
               location => {
                 return {
@@ -123,7 +145,7 @@ class Maps extends Component {
                   lng: parseFloat(location.Longitude)
                 };
               });
-            this.setState({ pathCoordinates: pathCoordinates });
+            this.setState({ pathCoordinates: pathCoordinates, });
           });
         $(".map-loader").hide();
       },
@@ -175,14 +197,18 @@ class Maps extends Component {
   }
 
   GetEmployees() {
+    $(".map-loader").show();
     $.ajax({
       url: ApiUrl + "/api/EmployeeLocation/GetEmployeesToBeLoggedIN?date=" +
         moment(this.state.date).format("YYYY-MM-DD"),
       type: "GET",
       success: (data) => {
-        this.setState({ EmployeesTobeLoggedIn: data["employees"], showUnLoggedEmployees: true })
+        this.setState({ EmployeesTobeLoggedIn: data["employees"], showUnLoggedEmployees: true }, () => {
+          $(".map-loader").hide();
+        })
       }
-    })
+    });
+
   }
 
   render() {
@@ -216,7 +242,6 @@ class Maps extends Component {
               </div>
             ) :
               <div style={{ backgroundColor: "#fff", padding: "2px 8px", fontSize: "14px" }}  >
-
                 <a href="javascript:void(0)" onClick={() => this.GetEmployees()}>  <b  > Not Yet Logged </b> </a>
                 {
                   this.state.showUnLoggedEmployees ?
@@ -294,7 +319,7 @@ class Maps extends Component {
                       <div className="d-flex">
                         <div className="time-block">
                           In Time :
-                    {moment(this.state.SelectedEmployee.ClockInTime).isValid()
+                        {moment(this.state.SelectedEmployee.ClockInTime).isValid()
                             ? moment(this.state.SelectedEmployee.ClockInTime).format(
                               "hh:mm A"
                             )
@@ -302,7 +327,7 @@ class Maps extends Component {
                         </div>
                         <div className="time-block">
                           Out Time :
-                    {moment(this.state.SelectedEmployee.ClockOutTime).isValid()
+                            {moment(this.state.SelectedEmployee.ClockOutTime).isValid()
                             ? moment(this.state.SelectedEmployee.ClockOutTime).format(
                               "hh:mm A"
                             )
@@ -348,11 +373,15 @@ class Maps extends Component {
                     var employeeData = (
                       <div className="location-info">
                         <span className="location-info-employee"> {ele["EmployeeName"]} </span>
-                        <div className="location-info-address" style={{float: 'right'}}>
+                        <div className="location-info-address" style={{ float: 'right' }}>
                           {
                             ele["LeaveType"] == null ?
                               <div>
                                 <label className="Radio">
+                                  <input type="radio" id="leave" name="reasonForUnlog" value="leave" onClick={this.ComOffClicked.bind(this, i)} />
+                                  Comp Off
+                                 </label>
+                                <label className="Radio" style={{ paddingLeft: '4px' }}>
                                   <input type="radio" id="leave" name="reasonForUnlog" value="leave" onClick={this.LeaveClicked.bind(this, i)} />
                                   Leave
                                  </label>
@@ -366,7 +395,7 @@ class Maps extends Component {
                               </div>
 
                               :
-                              <span className="leaveType"> {ele["LeaveType"]} </span>
+                              <span className={ele["LeaveType"] == "CompOff" ? "compOff" : "leaveType"} > {ele["LeaveType"]} </span>
                           }
                         </div>
                       </div>
@@ -426,6 +455,10 @@ class Maps extends Component {
 
       </div>
     )
+  }
+
+  ComOffClicked(e, ele) {
+    this.setState({ LeaveType: "CompOff" })
   }
 
   LeaveClicked(e, ele) {

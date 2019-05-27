@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
 import { ApiUrl } from '../Config.js';
-import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
+import { showErrorsForInput } from '.././Validation';
 import './ChangePassword.css';
 import { toast } from 'react-toastify';
-import{MyAjax} from '../MyAjax.js';
+import { MyAjax } from '../MyAjax.js';
 
-
-class ChangePassword extends Component {
-
+class ChangePassword extends Component { 
     render() {
         return (
             <div className="container">
@@ -54,22 +52,20 @@ class ChangePassword extends Component {
         )
     }
 
-     logout() {
+    logout() {
         sessionStorage.removeItem("access_token");
         sessionStorage.removeItem("roles");
         window.isLoggedIn = false;
         window.open("/", "_self")
     }
 
-
     handleSubmit(e) {
         e.preventDefault();
 
-         $(".loaderActivity").show();
+        $(".loaderActivity").show();
         $("button[name='submit']").hide();
 
-
-        if (!ValidateForm(e)) {
+        if (!this.validate(e)) {
             $(".loaderActivity").hide();
             $("button[name='submit']").show();
             return false;
@@ -83,7 +79,7 @@ class ChangePassword extends Component {
 
         let url = ApiUrl + "/api/Account/ChangePassword";
 
-          MyAjax(
+        MyAjax(
             url,
             (data) => {
                 toast("Password updated succesfully!", {
@@ -106,12 +102,54 @@ class ChangePassword extends Component {
     }
 
     validate(e) {
-        var success = ValidateForm(e);
+        var success = true;
+        var isSubmit = e.type == "submit";
 
-        if (this.refs.newpwd.value != this.refs.confirmpwd.value) {
-            showErrorsForInput(this.refs.confirmpwd, ["New password & Confirm password should match"]);
-            return false;
+        if (this.refs.oldpwd.value.trim() == "") {
+            showErrorsForInput(this.refs.oldpwd, ["Old password required"]);
+            if (isSubmit) {
+                isSubmit = false;
+                this.refs.oldpwd.focus();
+            }
+            success = false;
         }
+        else {
+            showErrorsForInput(this.refs.oldpwd, "");
+        }
+
+        if (this.refs.newpwd.value.trim() == "") {
+            showErrorsForInput(this.refs.newpwd, ["New password required"]);
+            if (isSubmit) {
+                isSubmit = false;
+                this.refs.newpwd.focus();
+            }
+            success = false;
+        }
+        else {
+            showErrorsForInput(this.refs.newpwd, "");
+        }
+
+        if (this.refs.confirmpwd.value.trim() == "") {
+            showErrorsForInput(this.refs.confirmpwd, ["Confirm password is required"]);
+            if (isSubmit) {
+                isSubmit = false;
+                this.refs.confirmpwd.focus();
+            } 
+            success = false;
+        }
+        else {
+            if (this.refs.newpwd.value != this.refs.confirmpwd.value) {
+                showErrorsForInput(this.refs.confirmpwd, ["New password & Confirm password should match"]);
+                if (isSubmit) {
+                    isSubmit = false;
+                    this.refs.confirmpwd.focus();
+                } 
+                success = false;
+            }
+            else {
+                showErrorsForInput(this.refs.confirmpwd, "");
+            }
+        } 
         return success;
     }
 }

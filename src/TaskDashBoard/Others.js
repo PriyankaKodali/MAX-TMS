@@ -1,19 +1,11 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
-import { ApiUrl, remote } from '../Config';
 import Select from 'react-select';
 import './TaskDashBoard.css';
-import { MyAjax } from '../MyAjax';
-import { toast } from 'react-toastify';
-import 'react-bootstrap-table/dist/react-bootstrap-table.min.css';
-
-import ToDoLeads from './ToDoLeads';
+import { ApiUrl } from '../Config';
 import TasksThroughMe from './TasksThroughMe';
 import CreatedByMe from './CreatedByMe';
-import ToDoPending from './ToDoPending';
-import ToDo from './ToDo';
-
-import { SearchCriteria } from '../Globals';
+import { user, employeeName } from '../Globals';
 
 var moment = require('moment');
 var ReactBSTable = require('react-bootstrap-table');
@@ -21,65 +13,31 @@ var BootstrapTable = ReactBSTable.BootstrapTable;
 var TableHeaderColumn = ReactBSTable.TableHeaderColumn;
 
 
-function trClassFormat(row, rowIdx) {
-    if (row["Status"] === "Open" || row["Status"] === "Reopened") {
-        if (row["Notifications"] > 0) {
-            return "trStatusOpen tasknotification pointer"
-        }
-        else {
-            return "trStatusOpen pointer"
-        }
-    }
-
-    else if (row["Status"] === "Pending") {
-        if (row["Notifications"] > 0) {
-            return "trStatusPending pointer tasknotification";
-        }
-        else {
-            return "trStatusPending pointer";
-        }
-    }
-    else if (row["Status"] === "Closed") {
-        return "trStatusClosed pointer";
-    }
-    else {
-        if (row["Notifications"] > 0) {
-            return "trStatusClosed pointer tasknotification";
-        }
-        else {
-            return "trStatusClosed pointer ";
-        }
-    }
-}
-
-class TaskDashBoard extends Component {
-
+class Others extends Component {
     constructor(props) {
         super(props);
+
         var searchCriteria = { empId: '', taskFrom: '', client: '', department: '', priority: '', status: '', sortCol: '', sortDir: '' }
 
         this.state = {
-            ToDos: null, AssignedByMe: null, AssignedThroughMe: null,
-            TaskType: { value: 'all', label: 'All' }, ClientType: null, Status: '', Priority: '',
-            Department: null, Departments: [], myTasks: 1, TaskFrom: '', Clients: [], Client: '',
-            TasksOnMe: [], TasksByMe: [], TasksThroughMe: [], toDoList: true, tasksByMe: true,
-            showTaskThroughMe: true, EmployeeId: '', NeedUpdate: false, User: '', EmployeeName: '',
-            SearchCriteria: searchCriteria,
+            clientTask: false, offcTasks: false, SearchCriteria: searchCriteria, Departments: [],
+            Clients: [], Client: '', Department: null, TaskFrom: '', Priority: '', EmpId: '',
+            Status: '', TaskType: { value: 'All', label: 'All' }
         }
     }
 
     componentWillMount() {
-        // var User = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
-        var User = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId")
+        //  var User = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId")
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId");
-        var employeeName = this.props.location.state != null ? this.props.location.state["EmployeeName"] :
-            sessionStorage.getItem("displayName");
+        //  var employeeName = this.props.location.state != null ? this.props.location.state["EmployeeName"] :
+        //      sessionStorage.getItem("displayName");
+
+        var User = user != "" ? user : sessionStorage.getItem("EmpId");
+        var empName = employeeName != "" ? employeeName : sessionStorage.getItem("displayName");
 
         var criteria = this.state.SearchCriteria;
         criteria.empId = User;
-        criteria.employeeName = employeeName;
-
-        SearchCriteria(criteria);
+        criteria.employeeName = empName;
 
         if (this.props.location.state) {
             this.setState({
@@ -90,6 +48,7 @@ class TaskDashBoard extends Component {
         else {
             this.setState({ EmployeeId: User, EmployeeName: '', SearchCriteria: criteria })
         }
+
         $.ajax({
             url: ApiUrl + "/api/MasterData/GetDepartments",
             type: "get",
@@ -103,12 +62,13 @@ class TaskDashBoard extends Component {
         })
     }
 
-    render() {
 
+    render() {
         return (
             <div className="myContainer" key={this.state.SearchCriteria} >
                 <div className="col-xs-12 taskSearch">
                     <div className="col-md-2 form-group">
+
                         <div className="form-group">
                             <Select className="form-control" name="TaskType" placeholder="Task From" value={this.state.TaskFrom}
                                 options={[{ value: 'Client', label: 'Client' }, { value: 'Office', label: 'Office' }]}
@@ -151,8 +111,10 @@ class TaskDashBoard extends Component {
                     <div className="col-md-2 form-group">
                         <div className="form-group">
                             <Select className="form-control" name="TaskType" placeholder="Task Type" value={this.state.TaskType}
-                                options={[{ value: 'all', label: 'All' }, { value: 'tasksOnMe', label: 'Tasks On Me' }, { value: 'tasksByMe', label: 'Tasks By Me' }, { value: 'tasksThroughMe', label: 'Tasks Through Me' },
-                                { value: 'pendingTasksOnMe', label: 'Pending Tasks' }]}
+                                options={[{ value: 'all', label: 'All' },
+                                { value: 'tasksByMe', label: 'Tasks By Me' },
+                                { value: 'tasksThroughMe', label: 'Tasks Through Me' }
+                                ]}
                                 onChange={this.taskTypeChanged.bind(this)}
                             />
                         </div>
@@ -175,86 +137,122 @@ class TaskDashBoard extends Component {
                     </div>
                     <div className="col-md-2 button-block text-center">
                         <input type="button" className="btn btn-primary" value="submit" onClick={this.handleSearchClick.bind(this)} />
-                        <input type="button" className="btn btn-default clearBtn mleft10" value="Clear" onClick={this.ClearClick.bind(this)} />
+                        <input type="button" className="btn btn-default clearBtn" value="Clear" onClick={this.handleClearClick.bind(this)} />
                     </div>
                 </div>
 
                 {
                     this.props.location.state ?
                         <div className="col-xs-12">
-                            {this.state.EmployeeName && sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ?
-                                <p>
-                                    You are in <b style={{ color: 'green' }} > {this.state.EmployeeName}  </b>   's screen
-                       </p>
-                                : <div />}
+                            {
+                                //this.state.EmployeeName != '' ?
+
+                                this.state.EmployeeId !== sessionStorage.getItem("Emp_Id") ?
+                                    <p>
+                                        You are in <b style={{ color: 'green' }} > {this.state.EmployeeName}  </b>   's screen
+                   </p>
+                                    : <div />}
                         </div>
                         :
                         <div />
                 }
-                <div className="col-xs-12">
-
-                </div>
-                <div className="clearfix"></div>
-
-                <div className="col-xs-12" key={this.state.EmployeeId} >
+                <div key={this.state.SearchCriteria}>
                     {
-                        this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksOnMe" ?
-                            <div >
-                                <ToDo SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
-                            </div>
-                            : <div />
-                    }
-                </div>
-
-                <div className="col-xs-12" >
-                    {
-                        this.state.TaskType.value == "all" || this.state.TaskType.value === "pendingTasksOnMe" ?
-                            <div>
-                                <ToDoPending SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
-                            </div>
-                            : <div />
-                    }
-                </div>
-
-                <div className="col-xs-12">
-                    <ToDoLeads SearchCriteria={this.state.SearchCriteria} history={this.props.history} history={this.props.history} location={this.props.location} match={this.props.match} />
-                </div>
-
-                <div className="col-xs-12">
-                    {
-                        this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksByMe" ?
+                        this.state.TaskType.value == 'All' || this.state.TaskType.value == 'tasksByMe' ?
                             <div >
                                 <CreatedByMe SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
                             </div>
-                            : <div />
+                            :
+                            <div></div>
                     }
-                </div>
 
-                <div className="col-xs-12">
                     {
-                        this.state.TaskType.value == "all" || this.state.TaskType.value === "tasksThroughMe" ?
+                        this.state.TaskType.value == 'All' || this.state.TaskType.value == 'tasksThroughMe' ?
                             <div>
                                 <TasksThroughMe SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
                             </div>
                             : <div />
                     }
                 </div>
-
             </div>
+
         )
     }
 
-    CreatedDateFormatter(cell, row) {
-        return <p> {moment(row["CreatedDate"]).format("MM-DD-YYYY")}</p>
+
+    taskTypeChanged(val) {
+        if (val) {
+            this.setState({ TaskType: val, NeedUpdate: true }, () => {
+                if (val.value == "tasksOnMe") {
+                }
+                if (val.value == "")
+                    if (val.value == 'toDoPendingList') {
+                    }
+            })
+        }
+        else {
+            this.setState({ TaskType: { value: 'all', label: 'All' } })
+        }
+    }
+
+    ClientChanged(val) {
+        if (val) {
+            this.setState({ Client: val })
+        }
+        else {
+            this.setState({ Client: '' })
+        }
+    }
+
+    DepartmentChanged(val) {
+        if (val) {
+            this.setState({ Department: val })
+        }
+
+        else {
+            this.setState({ Department: '' })
+        }
+    }
+
+    taskFromChanged(val) {
+
+        if (val) {
+            if (val.value == "Client") {
+                this.setState({ TaskFrom: val, clientTask: true, offcTasks: false, Client: '' })
+            }
+            else if (val.value == "Office") {
+                this.setState({ TaskFrom: val, offcTasks: true, clientTask: false, Department: '' })
+            }
+            else {
+                this.setState({ TaskFrom: '', offcTasks: false, clientTask: false })
+            }
+        }
+    }
+
+    PriorityChanged(val) {
+        if (val) {
+            this.setState({ Priority: val })
+        }
+        else {
+            this.setState({ Priority: '' })
+        }
+    }
+
+    StatusChanged(val) {
+        if (val) {
+            this.setState({ Status: val })
+        }
+        else {
+            this.setState({ Status: '' })
+        }
     }
 
     handleSearchClick() {
         var searchCriteria = this.state.SearchCriteria;
-
         var empId = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId");
         var client = this.state.Client != '' ? this.state.Client.value : '';
         var department = this.state.Department != null ? this.state.Department.value : '';
-        var priority = this.state.Priority
+        var priority = this.state.Priority != '' ? this.state.Priority.value : '';
         var status = this.state.Status != '' ? this.state.Status.value : '';
         var taskFrom = this.state.TaskFrom != '' ? this.state.TaskFrom.value : '';
 
@@ -269,11 +267,12 @@ class TaskDashBoard extends Component {
 
     }
 
-    ClearClick() {
+    handleClearClick() {
 
         var searchCriteria = this.state.SearchCriteria;
         var empId = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId");
 
+        searchCriteria.empId = empId;
         searchCriteria.client = '';
         searchCriteria.department = null;
         searchCriteria.priority = '';
@@ -282,75 +281,11 @@ class TaskDashBoard extends Component {
 
         this.setState({
             Client: '', Depatment: '', Status: '', Priority: '', TaskFrom: '',
-            TaskType: { value: 'all', label: 'All' },
-            clientTask: false, offcTasks: false, SearchCriteria: searchCriteria
+            TaskType: { value: 'All', label: 'All' }, clientTask: false, offcTasks: false,
+            SearchCriteria: searchCriteria
         })
     }
 
-    StatusChanged(val) {
-
-        if (val) {
-            this.setState({ Status: val.value, })
-        }
-        else {
-            this.setState({ Status: '' })
-        }
-    }
-
-    PriorityChanged(val) {
-        if (val) {
-            this.setState({ Priority: val.value })
-        }
-        else {
-            this.setState({ Priority: '' })
-        }
-    }
-
-    ClientChanged(val) {
-        if (val) {
-            this.setState({ Client: val.value })
-        }
-        else {
-            this.setState({ Client: '' })
-        }
-    }
-
-    DepartmentChanged(val) {
-        if (val) {
-            this.setState({ Department: val.value })
-        }
-
-        else {
-            this.setState({ Department: '' })
-        }
-    }
-
-    taskTypeChanged(val) {
-        if (val) {
-            this.setState({ TaskType: val }, () => {
-                if (val.value == "tasksOnMe") {
-                }
-                else if (val.value == "tasksThroughMe") {
-                }
-                else if (val.value == 'toDoPendingList') {
-                }
-                else {
-                }
-            })
-        }
-        else {
-            this.setState({ TaskType: { value: 'all', label: 'All' } })
-        }
-    }
-
-    taskFromChanged(val) {
-        if (val) {
-            this.setState({ TaskFrom: val.value })
-        }
-        else {
-            this.setState({ TaskFrom: '' })
-        }
-    }
 }
 
-export default TaskDashBoard;
+export default Others;

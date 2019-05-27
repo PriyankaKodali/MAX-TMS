@@ -25,10 +25,16 @@ function trClassFormat(row, rowIdx) {
 }
 
 function columnClassNameFormat(fieldValue, row, rowIdx, colIdx) {
-    if(row["TaskStatus"]=="Closed"){
-         return "taskCompleted";
+    if (row["TaskStatus"] == "Closed") {
+        return "taskCompleted";
     }
-  }
+    if (row["TaskStatus"] == "Pending" || row["TaskStatus"] == "InProcess") {
+        return "trStatusPending";
+    }
+    if (row["TaskStatus"] == "Open") {
+        return "trStatusOpen";
+    }
+}
 
 class DayReport extends Component {
 
@@ -37,7 +43,7 @@ class DayReport extends Component {
         this.state = {
             EmployeeReport: [], Employees: [], Employee: '', Clients: [], Client: '', Status: 'ALL',
             Priority: '', IsDataAvailable: true, TaskId: '', TaskInDetail: {}, TaskLog: [],
-            viewTaskInDetail: false, Description: ""
+            viewTaskInDetail: false, Description: "", Categories: [], Category: null
 
         }
     }
@@ -56,14 +62,20 @@ class DayReport extends Component {
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
-        
+
+        $.ajax({
+            url: ApiUrl + "/api/MasterData/GetCategories?deptId=" + 9,
+            type: "get",
+            success: (data) => { this.setState({ Categories: data["categories"] }) }
+        })
+
     }
 
     GetEmployeeReport() {
         var url = ApiUrl + "/api/Reports/GetEmployeeDayWiseReport?empId=" + this.state.Employee +
             "&clientId=" + this.state.Client + "&fromDate=" + this.state.FromDate +
             "&toDate=" + this.state.ToDate + "&status=" + this.state.Status +
-            "&priority=" + this.state.Priority + "&taskId=" + this.state.TaskId;
+            "&priority=" + this.state.Priority + "&taskId=" + this.state.TaskId + "&catId=" + null;
         MyAjax(
             url,
             (data) => {
@@ -160,8 +172,16 @@ class DayReport extends Component {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-xs-12" style={{marginLeft: '40%'}}>
-                            <div className="col-md-2" style={{ marginBottom: '1%' }} >
+                        <div className="col-xs-12" >
+                            <div className="col-md-2">
+                                <div className="form-group">
+                                    <div className="input-group">
+                                        <span className="input-group-addon"></span>
+                                        <Select className="form-control" placeholder="Select Category" options={this.state.Categories} value={this.state.Category} onChange={this.CategoryChanged.bind(this)} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-2" style={{ marginLeft: '10%', marginBottom: '1%' }} >
                                 <button type="submit" name="submit" className="btn btn-primary" value="Search" > Search </button>
                                 <button type="button" name="clear" className="btn btn-default mleft10" value="Clear" onClick={this.clearClick.bind(this)}> Clear </button>
                             </div>
@@ -341,8 +361,18 @@ class DayReport extends Component {
                 <p style={{ color: 'red' }}>{moment(row["edoc"]).format("DD-MMM-YYYY")}</p>
             )
         }
-
     }
+
+
+    CategoryChanged(val) {
+        if (val) {
+            this.setState({ Category: val.value })
+        }
+        else {
+            this.setState({ Category: null })
+        }
+    }
+
 
     ClientDeptFormatter(cell, row) {
         return <p >  {row["Department"] == null ? row["Client"] : row["Department"]} </p>
@@ -466,8 +496,8 @@ class DayReport extends Component {
                 isSubmit = false;
             }
         }
-        else{
-            showErrorsForInput(this.refs.fromDate,  null);
+        else {
+            showErrorsForInput(this.refs.fromDate, null);
         }
         if (this.refs.toDate.value == "") {
             showErrorsForInput(this.refs.toDate, ["To date is required"]);
@@ -476,8 +506,8 @@ class DayReport extends Component {
                 isSubmit = false;
             }
         }
-        else{
-            showErrorsForInput(this.refs.toDate,  null);
+        else {
+            showErrorsForInput(this.refs.toDate, null);
         }
         if (success) {
             var dateDiff = ((moment(this.refs.toDate.value).diff(moment(this.refs.fromDate.value), 'days')) + 1);

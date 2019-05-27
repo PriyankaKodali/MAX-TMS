@@ -3,7 +3,7 @@ import $ from 'jquery';
 import { ApiUrl, remote } from '../Config';
 import { MyAjax } from '../MyAjax.js';
 import { toast } from 'react-toastify';
-import {SearchCriteria} from '../Globals';
+import { SearchCriteria } from '../Globals';
 
 var moment = require('moment');
 var ReactBSTable = require('react-bootstrap-table');
@@ -47,34 +47,39 @@ class ToDoPending extends Component {
     constructor(props) {
         super(props);
 
-        var searchCriteria = {user:'',client:'', department:'',taskType:'', priority:null, status:'', sortCol:'', sortDir:'', taskCategory:'' }
-        
+        var searchCriteria = { user: '', client: '', department: '', taskType: '', priority: null, status: '', sortCol: '', sortDir: '', taskCategory: '' }
+
         this.state = {
             PendingTasksOnMe: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, isDataAvailable: true,
             PendingTasksOnMeSummary: [], sortCol: 'TaskId', sortDir: 'desc', showTaskByMe: true,
-            searchCriteria: searchCriteria
+            SearchCriteria: this.props.SearchCriteria, showToDoList: true
         }
     }
 
     componentWillMount() {
-        this.setState({Client: this.props.Client , Department: this.props.Department, 
-                        TaskFrom: this.props.TaskFrom, Priority: this.props.Priority,
-                         Status: this.props.Status  },()=>{
-                            this.GetToDoPending(this.state.currentPage, this.state.sizePerPage)
-                         })
+
+        this.setState({
+            Client: this.props.SearchCriteria.client, Priority: this.props.SearchCriteria.priority,
+            Department: this.props.SearchCriteria.department, Status: this.props.SearchCriteria.status,
+            EmpId: this.props.SearchCriteria.empId, TaskFrom: this.props.SearchCriteria.taskFrom
+        }, () => {
+            this.GetToDoPending(this.state.currentPage, this.state.sizePerPage)
+        })
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({Client: nextProps.Client , Department: nextProps.Department, 
-            TaskFrom: nextProps.TaskFrom, Priority: nextProps.Priority,
-             Status: nextProps.Status  },()=>{
-                this.GetToDoPending(this.state.currentPage, this.state.sizePerPage)
-             })
+        this.setState({
+            Client: nextProps.SearchCriteria.client, Department: nextProps.SearchCriteria.department,
+            TaskFrom: nextProps.SearchCriteria.taskFrom, Priority: nextProps.SearchCriteria.priority,
+            Status: nextProps.SearchCriteria.status, EmpId: nextProps.SearchCriteria.empId,
+        }, () => {
+            this.GetToDoPending(this.state.currentPage, this.state.sizePerPage)
+        })
     }
 
     GetToDoPending(page, count) {
 
-        var url = ApiUrl + "/api/Activities/GetToDoPendingTasks?EmpId=" + this.props.EmpId +
+        var url = ApiUrl + "/api/Activities/GetToDoPendingTasks?EmpId=" + this.state.EmpId +
             "&clientId=" + this.state.Client +
             "&departmentId=" + this.state.Department +
             "&taskType=" + this.state.TaskFrom +
@@ -103,11 +108,11 @@ class ToDoPending extends Component {
     render() {
         return (
             <div key={this.state.PendingTasksOnMe} >
-                {
+                { 
                     this.state.PendingTasksOnMe.length > 0 ?
                         <div>
                             <div className="col-xs-12" style={{ marginTop: '0.5%' }}>
-                                <a onClick={() => { this.setState({ toDoList: !this.state.toDoList }) }} style={{ cursor: 'pointer' }} >
+                                <a onClick={() => { this.setState({ showToDoList: !this.state.showToDoList }) }} style={{ cursor: 'pointer' }} >
                                     <h3 className="col-xs-12 formheader"> To Do List Pending
                                         <span className="job-summary-strip">
                                             <span> Total Tasks :  {this.state.PendingTasksOnMeSummary["TotalJobs"]} |  </span>
@@ -115,13 +120,12 @@ class ToDoPending extends Component {
                                             <span> Medium :  {this.state.PendingTasksOnMeSummary["PriorityMediumJobs"]} | </span>
                                             <span> Low : {this.state.PendingTasksOnMeSummary["PriorityLowJobs"]} </span>
                                         </span>
-
-                                        <span className={(this.state.toDoList ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>
+                                        <span className={(this.state.showToDoList ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>
                                     </h3>
                                 </a>
                             </div>
                             {
-                              
+                                this.state.showToDoList ?
                                     this.state.IsDataAvailable ?
                                         <div className="col-xs-12">
                                             <BootstrapTable striped hover remote={true} pagination={true} key={this.state.TasksOnMe}
@@ -157,7 +161,8 @@ class ToDoPending extends Component {
                                         </div>
                                         :
                                         <div className="loader visble"></div>
-                                   
+                                    :
+                                    <div />
                             }
                         </div>
                         :
@@ -169,26 +174,27 @@ class ToDoPending extends Component {
 
 
     rowClicked(row) {
-        this.gotoEditTask(row.RowNum,row.TaskId, row.CreatedBy, row.TaskOwner, row.Status, row.Notifications);
+        this.gotoEditTask(row.RowNum, row.TaskId, row.CreatedBy, row.TaskOwner, row.Status, row.Notifications);
     }
 
-    gotoEditTask(RowId,TaskId, CreatedBy, TaskOwner, Status, Notification,TotalCount) {
+    gotoEditTask(RowId, TaskId, CreatedBy, TaskOwner, Status, Notification, TotalCount) {
 
-      //  var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
+        //  var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
         var currentLogin = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId")
-        var EmployeeName= this.props.location.state!=null ? this.props.location.state["EmployeeName"]: ""
-        var criteria= this.state.searchCriteria;
-        
-        criteria.user= currentLogin;
-        criteria.client= this.state.Client;
-        criteria.department= this.state.Department;
-        criteria.taskType= this.state.TaskFrom;
-        criteria.priority= this.state.Priority;
+        var EmployeeName = this.props.location.state != null ? this.props.location.state["EmployeeName"] : ""
+        var criteria = this.state.SearchCriteria;
+
+        criteria.user = currentLogin;
+        criteria.client = this.state.Client;
+        criteria.department = this.state.Department;
+        criteria.taskType = this.state.TaskFrom;
+        criteria.priority = this.state.Priority;
         criteria.status = this.state.Status;
-        criteria.sortCol= this.state.sortCol;
-        criteria.sortDir= this.state.sortDir;
+        criteria.sortCol = this.state.sortCol;
+        criteria.sortDir = this.state.sortDir;
         criteria.taskCategory = "ToDoPending";
-          
+        criteria.screen = "ToDos";
+
         SearchCriteria(criteria);
 
         this.props.history.push({
@@ -200,7 +206,7 @@ class ToDoPending extends Component {
                 Status: Status,
                 EmpId: currentLogin,
                 Notifications: Notification,
-                EmployeeName:EmployeeName
+                EmployeeName: EmployeeName
             },
             pathname: "/ViewTask"
         })

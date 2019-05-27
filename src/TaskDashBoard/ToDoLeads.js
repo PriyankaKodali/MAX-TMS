@@ -3,7 +3,7 @@ import $ from 'jquery';
 import { ApiUrl, remote } from '../Config';
 import {MyAjax} from '../MyAjax.js';
 import {toast} from 'react-toastify';
-import { matchPath } from 'react-router'
+
 
 var moment= require('moment');
 var ReactBSTable= require('react-bootstrap-table');
@@ -21,18 +21,26 @@ class ToDoLeads extends Component{
         this.state={
             ToDoLeads:[], currentPage:1, sizePerPage:50, dataTotalSize:0, IsDataAvailable:true,todo:false,
             TotalCount:0, Status:'', Client:'', Department: null,sortCol: 'CreatedDate', sortDir: 'desc',
-            ViewToDoLeads:true,TaskFrom: '',
+            ViewToDoLeads:true,TaskFrom: '',EmpId:''
         }
     }
-    componentWillMount(){
-           this.GetToDoLeads(this.state.currentPage, this.state.sizePerPage);
+    componentWillMount() { 
+        this.setState({ 
+            EmpId: this.props.SearchCriteria.empId 
+        }, () => {
+            this.GetToDoLeads(this.state.currentPage, this.state.sizePerPage)
+        })
     }
 
-    GetToDoLeads(page, count){
+    componentWillReceiveProps(nextProps) {
+        this.setState({ EmpId: nextProps.SearchCriteria.empId,
+        }, () => {
+            this.GetToDoLeads(this.state.currentPage, this.state.sizePerPage)
+        })
+    }
+    GetToDoLeads(page, count){ 
 
-       // var empId = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
-
-        var url=ApiUrl + "/api/Opportunity/GetMyLeads?EmpId="+ this.props.EmpId + 
+        var url=ApiUrl + "/api/Opportunity/GetMyLeads?EmpId="+ this.state.EmpId + 
         "&clientId=" + this.state.Client +
         "&departmentId=" + this.state.Department +
         "&taskType=" + this.state.TaskFrom +

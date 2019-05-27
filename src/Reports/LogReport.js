@@ -45,40 +45,26 @@ class LogReport extends Component {
             url: ApiUrl + "/api/MasterData/GetClientsWithAspNetUserId?orgId=" + orgId,
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
-        })
+        }) 
 
-
-        var url = ApiUrl + "/api/Activities/GetEmployeesLogReport?empId=" + this.state.Employee +
-            "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-            "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId;
-        MyAjax(
-            url,
-            (data) => {
-                this.setState({ ReportData: data["reportData"], SearchClick: true, IsDataAvailable: true }, () => {
-                    $("employeeTasksReportModal").modal("show");
-                })
-            },
-
-            (error) => toast(error.responseText, {
-                type: toast.TYPE.ERROR
-            }), "GET", null
-        )
+        this.GetEmployeeReport();
     }
 
     GetEmployeeReport() {
         var url = ""
 
         if (this.state.isEmployeeChecked) {
-            url = ApiUrl + "/api/Activities/GetEmployeesLogReport?empId=" + this.state.Employee +
+            url = ApiUrl + "/api/Reports/GetEmployeesLogReport?empId=" + this.state.Employee +
                 "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId;
+                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId +
+                "&catId=" + null;
         }
         else {
-            url = ApiUrl + "/api/Activities/GetClientLogReport?empId=" + this.state.Employee +
+            url = ApiUrl + "/api/Reports/GetClientLogReport?empId=" + this.state.Employee +
                 "&fromDate=" + this.state.FromDate + "&toDate=" + this.state.ToDate + "&clientId=" + this.state.Client +
-                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId;
-        }
-
+                "&priority=" + this.state.Priority + "&status=" + this.state.Status + "&taskId=" + this.state.TaskId +
+                "&catId=" + null;
+        } 
         MyAjax(
             url,
             (data) => {
@@ -279,7 +265,7 @@ class LogReport extends Component {
                                                                                                 editorState={this.gotoChangeDescription(e["Description"])} toolbarClassName="hide-toolbar"
                                                                                                 wrapperClassName="response-editor-wrapper" editorClassName="draft-editor-inner"
                                                                                             />
-                                                                                        </div>  
+                                                                                        </div>
                                                                                         <table className="table table-condensed table-bordered actionTable mytable">
                                                                                             <tbody>
                                                                                                 <tr>
@@ -315,7 +301,7 @@ class LogReport extends Component {
                                                                                                     return (
                                                                                                         //   <tr className= { moment(this.state.FromDate).format("DD-MM-YYYY") >= moment(el["TaskLogDate"]).format("DD-MM-YYYY") || moment(this.state.ToDate).format("DD-MM-YYYY") == moment(el["TaskLogDate"]).format("DD-MM-YYYY") ? "selectedDateRow": ""} >
                                                                                                         <tr className={el["TaskLogAssignedById"] == this.state.Employee ? this.setRowStyle(el["TaskLogDate"]) : ""}>
-                                                                                                            <td> { moment(el["TaskLogDate"]).format("DD-MMM-YYYY hh:mm a")}</td>
+                                                                                                            <td> {moment(el["TaskLogDate"]).format("DD-MMM-YYYY hh:mm a")}</td>
                                                                                                             <td> {el["TaskLogAssignedBy"]}</td>
                                                                                                             <td style={{ width: '50%', paddingTop: '0px' }}>
                                                                                                                 <Editor name="actionResponse" readonly={true} id="actionResponse"

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
-import { MyAjaxForAttachments, MyAjax } from '../MyAjax';
-import { ValidateForm, showErrorsForInput, setUnTouched, showErrors } from '../Validation.js';
+import { ValidateForm} from '../Validation.js';
 import { ApiUrl } from '../Config.js';
 import { toast } from 'react-toastify';
 

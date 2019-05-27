@@ -47,34 +47,37 @@ class TasksThroughMe extends Component {
 
     constructor(props) {
         super(props);
-        var searchCriteria = {user:'',client:'', department:'',taskType:'', priority:null, status:'', sortCol:'', sortDir:'', taskCategory:'' }
-        
-        this.state = {
+         this.state = {
             TasksThroughMe: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, isDataAvailable: true,
             TaskThroughMeSummary:[], sortCol: 'CreatedDate' , sortDir: 'desc',showTaskThroughMe: true,
-            Client:'', Department:'',TaskFrom:'', Priority:null, Status:'', searchCriteria: searchCriteria
+            Client:'', Department:'',TaskFrom:'', Priority:null, Status:'', 
+            SearchCriteria: this.props.SearchCriteria,
         }
     }
-
-    componentWillMount() {
-        this.setState({Client: this.props.Client , Department: this.props.Department, 
-                        TaskFrom: this.props.TaskFrom, Priority: this.props.Priority,
-                         Status: this.props.Status  },()=>{
-                            this.GetTasksThroughMe(this.state.currentPage, this.state.sizePerPage)
-                         })
+ componentWillMount() {
+        this.setState({
+            Client: this.props.SearchCriteria.client, Priority: this.props.SearchCriteria.priority,
+            Department: this.props.SearchCriteria.department, Status: this.props.SearchCriteria.status,
+            EmpId: this.props.SearchCriteria.empId, TaskFrom: this.props.SearchCriteria.taskFrom
+        }, () => {
+            this.GetTasksThroughMe(this.state.currentPage, this.state.sizePerPage)
+        })
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({Client: nextProps.Client , Department: nextProps.Department, 
-            TaskFrom: nextProps.TaskFrom, Priority: nextProps.Priority,
-             Status: nextProps.Status  },()=>{
-                this.GetTasksThroughMe(this.state.currentPage, this.state.sizePerPage)
-             })
+        this.setState({
+            Client: nextProps.SearchCriteria.client, Priority: nextProps.SearchCriteria.priority,
+            Department: nextProps.SearchCriteria.department, Status: nextProps.SearchCriteria.status,
+            EmpId: nextProps.SearchCriteria.empId, TaskFrom: nextProps.SearchCriteria.taskFrom
+        }, () => {
+            this.GetTasksThroughMe(this.state.currentPage, this.state.sizePerPage)
+        })
     }
+
 
   
     GetTasksThroughMe(page, count) {
-        var url = ApiUrl + "/api/Activities/GetTasksThroughMe?EmpId=" + this.props.EmpId +
+        var url = ApiUrl + "/api/Activities/GetTasksThroughMe?EmpId=" + this.state.EmpId +
             "&clientId=" + this.state.Client +
             "&departmentId=" + this.state.Department +
             "&taskType=" + this.state.TaskFrom +
@@ -170,7 +173,7 @@ class TasksThroughMe extends Component {
        // var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
         var currentLogin = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId")
         var EmployeeName= this.props.location.state!=null ? this.props.location.state["EmployeeName"]: ""
-        var criteria= this.state.searchCriteria;
+        var criteria= this.state.SearchCriteria;
         
         criteria.user= currentLogin;
         criteria.client= this.state.Client;
@@ -181,6 +184,7 @@ class TasksThroughMe extends Component {
         criteria.sortCol= this.state.sortCol;
         criteria.sortDir= this.state.sortDir;
         criteria.taskCategory = "ThroughMe";
+        criteria.screen = "Others";
           
         SearchCriteria(criteria);
 

@@ -5,15 +5,17 @@ import { ApiUrl } from '../Config';
 import { toast } from 'react-toastify';
 import { MyAjax, MyAjaxForAttachments } from '../MyAjax.js';
 import { showErrorsForInput, setUnTouched, ValidateForm } from '.././Validation';
-
+import { SearchCriteria } from '../Globals';
 
 
 class MIMICUser extends Component {
 
     constructor(props) {
         super(props);
+        var searchCriteria = { user: '', client: '', department: '', taskType: '', priority: null, status: '', sortCol: '', sortDir: '', taskCategory: '', employeeName: '' }
+
         this.state = {
-            Employees: [], Employee: null
+            Employees: [], Employee: null, SearchCriteria: searchCriteria
         }
     }
 
@@ -28,15 +30,13 @@ class MIMICUser extends Component {
                 type: toast.TYPE.ERROR
             })
         )
-
     }
 
     render() {
         return (
-            <div className="container">
-
-                <div className="col-xs-12">
-                    <div className="col-md-3">
+            <div className="container mimicUser">
+                <div className="col-xs-12" >
+                    <div className="col-md-6" >
                         <label> Employee </label>
                         <div className="form-group">
                             <div className="input-group">
@@ -50,13 +50,10 @@ class MIMICUser extends Component {
 
                         </div>
                     </div>
-
                     <div className="col-md-2" style={{ marginTop: '2%' }}>
                         <input type="button" className="btn btn-default" value="View" onClick={this.ViewClick.bind(this)} />
                     </div>
                 </div>
-
-
             </div>
         )
     }
@@ -79,15 +76,21 @@ class MIMICUser extends Component {
         }
         else {
             showErrorsForInput(this.refs.employee.wrapper, null);
-           // this.props.history.push("/TaskDashboard/" + this.state.Employee.value);
+            this.props.history.push("/TaskDashboard/" + this.state.Employee.value);
+            var criteria = this.state.SearchCriteria;
+            criteria.user = this.state.Employee.value;
+            criteria.employeeName = this.state.Employee.label;
 
-         this.props.history.push({
-            state: {
-                 EmpId: this.state.Employee.value,
-                 EmployeeName: this.state.Employee.label
-            },
-            pathname: "/TaskDashboard"
-        })
+            SearchCriteria(criteria);
+
+            this.props.history.push({
+                state: {
+                    EmpId: this.state.Employee.value,
+                    EmployeeName: this.state.Employee.label
+                },
+                pathname: "/TaskDashboard"
+                // pathname: "/ToDos"
+            })
 
 
             // alert(this.state.Employee.value);

@@ -12,7 +12,10 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { validate } from 'validate.js'
 import './TaskDashBoard.css';
 import { AssigneesList } from '../Task/AssigneesList';
-import { user, client, department, taskType, priority, status, sortCol, sortDir, taskCategory } from '../Globals';
+import {
+    user, client, department, taskType, priority, employeeName,
+    status, sortCol, sortDir, taskCategory, screen
+} from '../Globals';
 
 var moment = require('moment');
 
@@ -23,15 +26,14 @@ class ViewTask extends Component {
         var assignees = [{ AssigneeId: null, AssigneeName: "", Quantity: null }]
 
         this.state = {
-            TaskInfo: [], TaskLog: [], 
+            TaskInfo: [], TaskLog: [],
             Assignees: [], ActivityLog: [], PreviouslyWorkedQuantity: null,
             showHoursWorked: false, StartDate: moment().format("YYYY-MM-DD"), budgetedHoursDisabled: false,
             Description: EditorState.createEmpty(), ActionType: null, IsDisabled: false, DescriptionHtml: "",
             AssignedBy: null, TaskOwner: null, TaskId: '', Status: null, Status: null, Statuses: [],
             EndDate: "", maxBudgetedHours: '', BudgetedHours: '', TaskAssignees: assignees, OrgId: null,
             AddMultipleAssignees: false, markAsUnreadClick: false, LoginUser: '', Notifications: 0,
-            RowNum: 1, TotalRecords: 0, IsDataAvailable: false,
-            Task:[]
+            RowNum: 1, TotalRecords: 0, IsDataAvailable: false, Task: [], Points: ''
         }
     }
 
@@ -43,7 +45,8 @@ class ViewTask extends Component {
                 TaskCreator: this.props.location.state["CreatedBy"],
                 TaskOwner: this.props.location.state["TaskOwner"],
                 Status: this.props.location.state["Status"],
-                LoginUser: this.props.location.state["EmpId"],
+                LoginUser: user != "" ? user : sessionStorage.getItem("Emp_Id"),
+                //LoginUser:  this.props.location.state["EmpId"],
                 Notifications: this.props.location.state["Notifications"],
                 RowNum: this.props.location.state["RowId"],
                 LoginUserName: this.props.location.state["EmployeeName"]
@@ -58,12 +61,17 @@ class ViewTask extends Component {
 
     GetTaskInfo() {
         var orgId = sessionStorage.getItem("roles").indexOf("SuperAdmin") != -1 ? null : sessionStorage.getItem("OrgId")
-       
+
         MyAjax(
-            ApiUrl + "/api/Activities/GetTaskDetail?taskId=" + this.state.TaskId + 
-                      "&employeeId=" + this.state.LoginUser,
-            (data) =>{this.setState({Task: data["taskDetail"],TaskLog: data["taskDetail"]["TaskLog"], IsDataAvailable: true })},
-            (error)=>toast(error.responseText,{ type:toast.TYPE.ERROR })
+            ApiUrl + "/api/Activities/GetTaskDetail?taskId=" + this.state.TaskId +
+            "&employeeId=" + this.state.LoginUser,
+            (data) => {
+                this.setState({
+                    Task: data["taskDetail"], TaskLog: data["taskDetail"]["TaskLog"],
+                    IsDataAvailable: true,Points:data["taskDetail"]["Points"]
+                })
+            },
+            (error) => toast(error.responseText, { type: toast.TYPE.ERROR })
         )
 
         if (this.state.Status != "Closed") {
@@ -85,7 +93,6 @@ class ViewTask extends Component {
                     var currentLogin = employees.findIndex((i) => i.value == sessionStorage.getItem("EmpId"));
                     employees.splice(currentLogin, 1);
                     this.setState({ Assignees: employees });
-
                 })
             },
             (error) => toast(error.responseText, {
@@ -175,27 +182,36 @@ class ViewTask extends Component {
                             :
                             <div />
                     }
-                  <span></span>
-                    <button style={{ float: 'right' }} className="col-md-2 btn btn-default btn-sm backBtn mLeft1"  onClick={() => {
+                    <span></span>
+                    <button style={{ float: 'right' }} className="col-md-2 btn btn-default btn-sm backBtn mLeft1" onClick={() => {
                         //this.props.history.push("/TaskDashboard/" + this.props.location.state["EmpId"])
+                        // this.props.history.push({
+                        //     state: { 
+                        //         EmpId: user,
+                        //         EmployeeName: employeeName
+                        //     },
+                        //     pathname: "/TaskDashboard"
+                        // })
+
                         this.props.history.push({
                             state: {
-                                 EmpId: this.props.location.state["EmpId"],
-                                 EmployeeName:this.props.location.state["EmployeeName"]
+                                EmpId: this.props.location.state["EmpId"],
+                                EmployeeName: employeeName
                             },
                             pathname: "/TaskDashboard"
                         })
-                        }}  > Back </button>
-                          <span></span>
+
+                    }}  > Back </button>
+                    <span></span>
                     <button style={{ float: 'right' }} type="button" name="nxtbtn" className="btn btn-default btn-sm mLeft1" onClick={() => { this.handleNextClick() }}>
                         <span className="glyphicon glyphicon-forward"></span> Next
                     </button>
-                     <span></span>
+                    <span></span>
                     <button style={{ float: 'right' }} type="button" name="prebtn" className="btn btn-default btn-sm mLeft1" onClick={() => { this.handlePreviousClick() }}>
                         <span className="glyphicon glyphicon-backward"></span> Previous
                     </button>
 
-                  
+
                 </div>
 
                 {
@@ -224,8 +240,8 @@ class ViewTask extends Component {
                                 </table>
                             </div>
 
-                            <div className="col-md-6 col-xs-12 ">
-                                <table className="table table-condensed table-bordered headertable">
+                            <div className="col-md-6 col-xs-12" style={{marginBottom: '1%'}}>
+                                <table className="table table-condensed table-bordered headertable" >
                                     <tbody>
                                         <tr>
                                             <th> Exp. Date of closure/Priority </th>
@@ -351,11 +367,11 @@ class ViewTask extends Component {
                                                         <td >  {
                                                             ele["Attachments"] != null ?
                                                                 ele["Attachments"].map((el) => {
-                                                                   if (el["AttachmentURL"] !==null){
-                                                                    return (
-                                                                        <a href={el["AttachmentURL"]} target="blank"> <i className='fa fa-paperclip' style={{ fontSize: '18px', cursor: 'pointer' }}  ></i> </a>
-                                                                    )
-                                                                   } 
+                                                                    if (el["AttachmentURL"] !== null) {
+                                                                        return (
+                                                                            <a href={el["AttachmentURL"]} target="blank"> <i className='fa fa-paperclip' style={{ fontSize: '18px', cursor: 'pointer' }}  ></i> </a>
+                                                                        )
+                                                                    }
                                                                 })
                                                                 :
                                                                 null
@@ -496,7 +512,7 @@ class ViewTask extends Component {
                                                                 }
 
                                                                 {
-                                                                    this.state.Task["Quantity"] && this.state.LoginUser!= this.state.TaskCreator && this.state.ActionType.value !== "Assign" && this.state.ActionType.value !== "Comments" ?
+                                                                    this.state.Task["Quantity"] && this.state.LoginUser != this.state.TaskCreator && this.state.ActionType.value !== "Assign" && this.state.ActionType.value !== "Comments" ?
                                                                         <div className="col-md-2 form-group">
                                                                             <label>Qunatity Worked</label>
                                                                             <input className="form-control" type="number" placeholder="Quantity worked" name="quantityWorked" ref="quantityWorked" />
@@ -518,7 +534,7 @@ class ViewTask extends Component {
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            {this.state.Task["Quantity"]!==null ?
+                                                                            {this.state.Task["Quantity"] !== null ?
                                                                                 <div className="col-md-2" >
                                                                                     <label>Quantity</label>
                                                                                     <div className="form-group">
@@ -759,12 +775,14 @@ class ViewTask extends Component {
                 type: "GET",
                 success: (data) => {
                     if (data["reqTask"] !== null) {
-                        this.setState({ RowNum: data["reqTask"]["RowNum"], TaskId: data["reqTask"]["TaskId"], 
-                                        TaskCreator: data["reqTask"]["CreatedBy"],
-                                        TaskOwner: data["reqTask"]["TaskOwner"],
-                                        IsDataAvailable: false }, () => {
-                                             this.GetTaskInfo();
-                                  })
+                        this.setState({
+                            RowNum: data["reqTask"]["RowNum"], TaskId: data["reqTask"]["TaskId"],
+                            TaskCreator: data["reqTask"]["CreatedBy"],
+                            TaskOwner: data["reqTask"]["TaskOwner"],
+                            IsDataAvailable: false
+                        }, () => {
+                            this.GetTaskInfo();
+                        })
                     }
                     else {
                         this.setState({ RowNum: this.state.RowNum, TaskId: this.state.TaskId }, () => {
@@ -796,9 +814,11 @@ class ViewTask extends Component {
             type: "GET",
             success: (data) => {
                 if (data["reqTask"] !== null) {
-                    this.setState({ RowNum: data["reqTask"]["RowNum"], TaskId: data["reqTask"]["TaskId"],
-                      TaskCreator: data["reqTask"]["CreatedBy"], TaskOwner: data["reqTask"]["TaskOwner"],
-                      IsDataAvailable: false }, () => {
+                    this.setState({
+                        RowNum: data["reqTask"]["RowNum"], TaskId: data["reqTask"]["TaskId"],
+                        TaskCreator: data["reqTask"]["CreatedBy"], TaskOwner: data["reqTask"]["TaskOwner"],
+                        IsDataAvailable: false
+                    }, () => {
                         this.GetTaskInfo();
                     })
                 }
@@ -806,8 +826,7 @@ class ViewTask extends Component {
                     this.setState({ RowNum: this.state.RowNum, TaskId: this.state.TaskId }, () => {
                         this.GetTaskInfo();
                     })
-                }
-
+                } 
             }
         })
     }
@@ -825,13 +844,19 @@ class ViewTask extends Component {
             return;
         }
 
-        var data = new FormData();
-
+        var data = new FormData(); 
         data.append("taskId", this.state.TaskId);
         data.append("actionType", this.state.ActionType.value);
         data.append("description", this.state.DescriptionHtml);
         data.append("OrgId", sessionStorage.getItem("OrgId"));
 
+        if( this.state.Points){
+            data.append("points", this.state.Points);
+        }
+        else{
+            data.append("points",  0); 
+        }
+        
         if (this.state.ActionType.value === "Assign") {
             //  data.append("assignee", this.state.Assignee.value);
             data.append("hoursWorked", this.refs.hoursWorked.value);
@@ -876,7 +901,14 @@ class ViewTask extends Component {
                         type: toast.TYPE.SUCCESS
                     });
                     $("button[name='submit']").show();
-                    this.state.LoginUser != sessionStorage.getItem("EmpId") ? this.props.history.push("/TaskDashBoard/" + this.state.LoginUser) : this.props.history.push("/TaskDashBoard");
+                    this.state.LoginUser != sessionStorage.getItem("EmpId") ?
+                        this.props.history.push("/TaskDashBoard/" + this.state.LoginUser) :
+                        this.props.history.push("/TaskDashBoard");
+
+                    // this.state.LoginUser != sessionStorage.getItem("EmpId") ?
+                    //     this.props.history.push("/" + screen + this.state.LoginUser) :
+                    //     this.props.history.push("/" + screen);
+
                     return true;
                 },
                 (error) => {

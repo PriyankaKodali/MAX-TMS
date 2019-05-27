@@ -1,0 +1,19 @@
+.shadowBox{
+    border: 1px solid grey;
+    box-shadow: 1px 1px 2px 0px grey;
+    padding: 10px;
+    margin-top: 4%;
+    border-radius: 4px; 
+    margin: 5%;
+  }
+
+  .removeBtn{
+    font-size: 20px;
+    color: #d80c0c;
+    margin-top: 5.5%;   
+  }
+
+  .subheading{
+    font-weight: bold;
+    padding-left: 30px;
+  }

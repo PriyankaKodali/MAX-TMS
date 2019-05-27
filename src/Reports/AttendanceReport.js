@@ -3,16 +3,12 @@ import $ from 'jquery';
 import { ApiUrl } from '../Config';
 import Select from 'react-select';
 import { showErrorsForInput } from '../Validation';
-
 import DatePicker from "react-datepicker";
 
 var moment = require('moment');
 var ReactBSTable = require('react-bootstrap-table');
 var BootstrapTable = ReactBSTable.BootstrapTable;
 var TableHeaderColumn = ReactBSTable.TableHeaderColumn;
-
-
-
 
 function trClassFormat(row, rowIdx) {
 
@@ -27,7 +23,8 @@ class AttendanceReport extends Component {
         this.state = {
             AttendanceReport: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, Employee: '',
             FromDate: moment().format("YYYY-MM-DD"), ToDate: moment().format("YYYY-MM-DD"),
-            Employees: [], Employee: '',IsDataAvailable: false,
+            Employees: [], Employee: '', IsDataAvailable: false, IsHoliday: false, Eve: ''
+
         }
     }
 
@@ -37,10 +34,29 @@ class AttendanceReport extends Component {
             url: ApiUrl + "/api/MasterData/GetAllEmployeesWithAspNetUserId?orgId=" + 1003,
             type: "get",
             success: (data) => { this.setState({ Employees: data["employees"] }) }
-        })
+        }) 
+        $.ajax({
+            url: ApiUrl + "/api/MasterData/GetHolidays",
+            type: "get",
+            success: (data) => {
+                this.setState({ Holidays: data["holidays"] }, () => {
+                    var holidays = this.state.Holidays;
+                    var isHoliday = holidays.findIndex(i => moment(i.HolidayDate).format("YYYY-MM-DD") == moment().format("YYYY-MM-DD"));
+                    if (isHoliday != -1) {
+                        var holiday = holidays[isHoliday];
+                        this.setState({ IsHoliday: true, Eve: holiday.HolidayName }, () => {
+                            this.handleAttendanceReport();
+                        });
 
-        this.handleAttendanceReport();
+                    }
+                    else {
+                        this.setState({ IsHoliday: false }, () => { this.handleAttendanceReport(); });
+                    }
+                })
+            }
+        })
     }
+
 
     handleAttendanceReport() {
         var url = ApiUrl + "/api/EmployeeLocation/GetAttendanceReport?empId=" + this.state.Employee +
@@ -51,13 +67,25 @@ class AttendanceReport extends Component {
             url: url,
             type: "GET",
             success: (data) => {
-                this.setState({
-                    AttendanceReport: data["attendanceReport"], IsDataAvailable: true,
-                    dataTotalSize: data["totalCount"]
-                }, () => {
-                    $("loader").hide();
-                    $("button[name='submit']").show();
-                })
+                if (this.state.IsHoliday) {
+                    var attendanceReport = [];
+                    var report = data["attendanceReport"];
+                    report.map((ele, i) => {
+                        if (ele["ClockInTime"] != null) {
+                            attendanceReport.push(ele)
+                        }
+                    })
+                    this.setState({ AttendanceReport: attendanceReport, IsDataAvailable: true })
+                }
+                else {
+                    this.setState({
+                        AttendanceReport: data["attendanceReport"], IsDataAvailable: true,
+                        dataTotalSize: data["totalCount"]
+                    }, () => {
+                        $("loader").hide();
+                        $("button[name='submit']").show();
+                    })
+                }
             }
         })
     }
@@ -112,7 +140,18 @@ class AttendanceReport extends Component {
                         </div>
                     </div>
                 </form>
+
+                {this.state.IsHoliday ?
+                    <div>
+                        <div className="col-xs-12">
+                            <h3 style={{ color: 'green' }}>  <b> Today is holiday on the eve of  {this.state.Eve}</b> </h3>
+                        </div>
+                    </div>
+                    :
+                    <div />
+                }
                 {
+
                     this.state.IsDataAvailable ?
                         <div className="col-xs-12" key={this.state.AttendanceReport}>
                             <BootstrapTable striped hover data={this.state.AttendanceReport} trClassName={trClassFormat} >
@@ -121,14 +160,14 @@ class AttendanceReport extends Component {
                                 <TableHeaderColumn dataField="ClockInDelay" dataAlign="center" dataFormat={this.DelayForLogin.bind(this)} width="8" > LogIn Delay </TableHeaderColumn>
                                 <TableHeaderColumn dataField="ClockInAddress" dataAlign="left" width="21" > Login Location</TableHeaderColumn>
                                 <TableHeaderColumn dataField="ClockOutTime" dataAlign="center" dataFormat={this.clockOutFormatter.bind(this)} width="7" > Logout Time </TableHeaderColumn>
-                                <TableHeaderColumn dataField="ClockOutDelay" dataAlign="center" dataFormat={this.clockOutDelay.bind(this)} width="8"  > Early Logout </TableHeaderColumn>                                
+                                <TableHeaderColumn dataField="ClockOutDelay" dataAlign="center" dataFormat={this.clockOutDelay.bind(this)} width="8"  > Early Logout </TableHeaderColumn>
                                 <TableHeaderColumn dataField="ClockOutAddress" dataAlign="left" width="20"  > ClockOut Location </TableHeaderColumn>
                             </BootstrapTable>
                         </div>
                         :
-                        <div className="loader visible" style={{marginTop: '5%'}}></div>
+                        <div className="loader visible" style={{ marginTop: '5%' }}></div>
                 }
-
+  
             </div>
         )
     }
@@ -152,7 +191,7 @@ class AttendanceReport extends Component {
         if (row["ClockInDelay"] != null) {
             if (row["ClockInDelay"] > 0) {
                 var totalMinutes = row["ClockInDelay"]
-                var formatedMinutes =  Math.floor(totalMinutes / 60)  + ':' + totalMinutes % 60
+                var formatedMinutes = Math.floor(totalMinutes / 60) + ':' + totalMinutes % 60
                 return (
                     <p style={{ color: 'red' }}>{formatedMinutes}</p>
                 )

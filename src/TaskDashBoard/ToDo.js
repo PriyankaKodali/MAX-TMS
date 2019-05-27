@@ -49,18 +49,18 @@ class ToDo extends Component {
         var searchCriteria = { user: '', client: '', department: '', taskType: '', priority: null, status: '', sortCol: '', sortDir: '', taskCategory: '' }
 
         this.state = {
-            TasksOnMe: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, IsDataAvailable: false,
-            ActivitiesSummary: [], sortCol: 'CreatedDate', sortDir: 'desc',
-            searchCriteria: searchCriteria, Client: '', Department: '', TaskFrom: '', Priority: null,
-            Status: '', showToDoTasks: true
+            TasksOnMe: [], currentPage: 1, sizePerPage: 50, dataTotalSize: 1, isDataAvailable: true,
+            ActivitiesSummary: [], sortCol: 'TaskId', sortDir: 'desc', showTaskByMe: true,
+            SearchCriteria: this.props.SearchCriteria, EmpId: '',
+            Client: '', Department: '', TaskFrom: '', Priority: '', Status: '',
         }
     }
 
     componentWillMount() {
         this.setState({
-            Client: this.props.Client, Department: this.props.Department,
-            TaskFrom: this.props.TaskFrom, Priority: this.props.Priority,
-            Status: this.props.Status
+            Client: this.props.SearchCriteria.client, Priority: this.props.SearchCriteria.priority,
+            Department: this.props.SearchCriteria.department, Status: this.props.SearchCriteria.status,
+            EmpId: this.props.SearchCriteria.empId, TaskFrom: this.props.SearchCriteria.taskFrom
         }, () => {
             this.GetToDo(this.state.currentPage, this.state.sizePerPage)
         })
@@ -68,26 +68,23 @@ class ToDo extends Component {
 
     componentWillReceiveProps(nextProps) {
         this.setState({
-            Client: nextProps.Client, Department: nextProps.Department,
-            TaskFrom: nextProps.TaskFrom, Priority: nextProps.Priority,
-            Status: nextProps.Status
+            Client: nextProps.SearchCriteria.client, Priority: nextProps.SearchCriteria.priority,
+            Department: nextProps.SearchCriteria.department, Status: nextProps.SearchCriteria.status,
+            EmpId: nextProps.SearchCriteria.empId, TaskFrom: nextProps.SearchCriteria.taskFrom
         }, () => {
             this.GetToDo(this.state.currentPage, this.state.sizePerPage)
         })
     }
 
     GetToDo(page, count) {
-
-        var url = ApiUrl + "/api/Activities/GetMyTasksWeb?EmpId=" + this.props.EmpId +
+        var url = ApiUrl + "/api/Activities/GetMyTasksWeb?EmpId=" + this.state.EmpId +
             "&clientId=" + this.state.Client +
             "&departmentId=" + this.state.Department +
             "&taskType=" + this.state.TaskFrom +
             "&priority=" + this.state.Priority +
             "&status=" + this.state.Status +
-            "&page=" + page + "&count=" + count +
-            "&sortCol=" + this.state.sortCol +
+            "&page=" + page + "&count=" + count + "&sortCol=" + this.state.sortCol +
             "&sortDir=" + this.state.sortDir
-
         MyAjax(
             url,
             (data) => {
@@ -97,9 +94,7 @@ class ToDo extends Component {
                 })
             },
 
-            (error) => toast(error.responseText, {
-                type: toast.TYPE.ERROR
-            }), "GET", null
+            (error) => { }, "GET", null
         )
     }
 
@@ -107,22 +102,22 @@ class ToDo extends Component {
         return (
             <div key={this.state.TasksOnMe} >
                 <div className="col-xs-12" style={{ marginTop: '0.5%' }}>
-                    <a onClick={() => { this.setState({ showToDoTasks: !this.state.showToDoTasks }) }} style={{ cursor: 'pointer' }} >
+                    <a onClick={() => { this.setState({ showTaskByMe: !this.state.showTaskByMe }) }} style={{ cursor: 'pointer' }} >
                         <h3 className="col-xs-12 formheader"> To Do List
-                                        <span className="job-summary-strip">
+                                <span className="job-summary-strip">
                                 <span> Total Tasks :  {this.state.ActivitiesSummary["TotalJobs"]} |  </span>
                                 <span>High :  {this.state.ActivitiesSummary["PriorityHighJobs"]} |</span>
                                 <span> Medium :  {this.state.ActivitiesSummary["PriorityMediumJobs"]} | </span>
                                 <span> Low : {this.state.ActivitiesSummary["PriorityLowJobs"]} </span>
                             </span>
 
-                            <span className={(this.state.showToDoTasks ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>
+                            <span className={(this.state.showTaskByMe ? "up" : "down") + " fa fa-angle-down pull-right mhor10 f18 arrow"}></span>
                         </h3>
                     </a>
                 </div>
 
                 {
-                    this.state.showToDoTasks ?
+                    this.state.showTaskByMe ?
                         this.state.IsDataAvailable ?
                             <div className="col-xs-12">
                                 <BootstrapTable striped hover remote={true} pagination={true} key={this.state.TasksOnMe}
@@ -155,7 +150,7 @@ class ToDo extends Component {
                                 </BootstrapTable>
                             </div>
                             :
-                            <div className="loader visble"></div>
+                            <div className="loader visible" style={{ marginLeft: '50%', marginTop: '1%' }}></div>
                         : <div />
                 }
             </div>
@@ -163,17 +158,17 @@ class ToDo extends Component {
         )
     }
 
-
     rowClicked(row) {
         this.gotoEditTask(row.RowNum, row.TaskId, row.CreatedBy, row.TaskOwner, row.Status, row.Notifications);
     }
 
     gotoEditTask(RowId, TaskId, CreatedBy, TaskOwner, Status, Notification) {
 
-      //  var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
+        //  var currentLogin = this.props.match.params["id"] != null ? this.props.match.params["id"] : sessionStorage.getItem("EmpId")
         var currentLogin = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId")
-       var EmployeeName= this.props.location.state!=null ? this.props.location.state["EmployeeName"]: ""
-        var criteria = this.state.searchCriteria;
+        var EmployeeName = this.props.location.state != null ? this.props.location.state["EmployeeName"] : ""
+
+        var criteria = this.state.SearchCriteria;
 
         criteria.user = currentLogin;
         criteria.client = this.state.Client;
@@ -184,6 +179,7 @@ class ToDo extends Component {
         criteria.sortCol = this.state.sortCol;
         criteria.sortDir = this.state.sortDir;
         criteria.taskCategory = "ToDo";
+        criteria.screen = "ToDos";
 
         SearchCriteria(criteria);
 
@@ -196,11 +192,10 @@ class ToDo extends Component {
                 Status: Status,
                 EmpId: currentLogin,
                 Notifications: Notification,
-                EmployeeName:EmployeeName
+                EmployeeName: EmployeeName
             },
             pathname: "/ViewTask"
         })
-
     }
 
     onPageChange(page, sizePerPage) {

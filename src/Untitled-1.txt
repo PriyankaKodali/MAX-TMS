@@ -1,0 +1,762 @@
+   <nav className="navbar navbar-default">
+                            <nav className="navbar navbar-default">
+                                <div className="container-fluid">
+                                    <div className="navbar-header">
+                                        <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                                            <span className="icon-bar"></span>
+                                            <span className="icon-bar"></span>
+                                            <span className="icon-bar"></span>
+                                        </button>
+                                    </div>
+                                    <div className="collapse navbar-collapse" id="myNavbar">
+
+                                        <ul className="nav navbar-nav navbar-right navbar-menu" >
+                                            {
+                                                window.isLoggedIn && roles.indexOf("Admin") != -1 || window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                    <li><a className="pointer navbar-menu-item" onClick={this.addNewClick.bind(this)} >Add New</a></li>
+                                                    :
+                                                    ""
+                                            }
+
+                                            {
+                                                window.isLoggedIn && roles.indexOf("Admin") != -1 || window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 ?
+                                                    <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/LeadsList") }} >Lead</a></li>
+                                                    :
+                                                    ""
+                                            }
+
+                                            <li className="dropdown pointer">
+                                                <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown" > Material Request <span className="caret"></span></a>
+                                                <ul className="dropdown-menu">
+                                                    {
+                                                        <li>
+                                                            <a onClick={() => { this.props.history.push("/StockRequests") }}> Project </a>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </li>
+
+                                            <li className="dropdown pointer">
+                                                <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown"> Task Tracker <span className="caret"></span> </a>
+                                                <ul className="dropdown-menu">
+                                                    {
+                                                        window.isLoggedIn && roles.indexOf("SuperAdmin") != -1 || window.isLoggedIn && roles.indexOf("Admin") != -1 ?
+                                                            <li>
+                                                                <a onClick={() => { this.props.history.push("/Report") }} >Activities Report</a>
+                                                                <a onClick={() => { this.props.history.push("/LogReport") }} > Activities Log Report</a>
+                                                                <a onClick={() => { this.props.history.push("/AttendanceReport") }}> Attendance Report </a>
+                                                                <a onClick={() => { this.props.history.push("/DayReport") }}> Day Report </a>
+                                                                <a onClick={() => { this.props.history.push("/EmployeesLocationMap") }} >Employee Location Report</a>
+                                                                <a onClick={() => { this.props.history.push("/MIMICUser") }} > MIMIC User </a>
+                                                                <a onClick={() => { this.props.history.push("/Notification") }}> Send Notification</a>
+                                                            </li>
+                                                            :
+                                                            <li />
+                                                    }
+                                                    <li><a onClick={() => {
+                                                        window.location.reload();
+                                                        this.props.history.push("/TaskDashboard")
+                                                    }} > My Dashboard</a></li>
+                                                    <li>  <a onClick={() => { this.props.history.push("/MyReport") }}> My Report </a>  </li>
+                                                </ul>
+                                            </li>
+
+                                            <li><a className="pointer navbar-menu-item" onClick={() => { this.props.history.push("/Task") }} > Create Task</a></li>
+                                            <li className="dropdown pointer">
+                                                <a className="navbar-menu-item dropdown-toggle" data-toggle="dropdown">{"Hi " + sessionStorage.getItem("displayName")}<span className="caret"></span></a>
+                                                <ul className="dropdown-menu">
+                                                    <li><a onClick={() => this.props.history.push("/ChangePassword")}>Change Password</a></li>
+                                                    <li><a onClick={this.logoutClick.bind(this)}>Logout</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                </div>
+
+                            </nav>
+  </nav>
+
+
+
+
+
+
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router';
+import $ from 'jquery';
+
+class App extends Component {
+    constructor(props) {
+        super(props);
+        var isLoggedIn = sessionStorage.getItem("access_token") != null;
+        this.state = {
+            sidebarOpen: true
+        }
+        window.isLoggedIn = isLoggedIn;
+    }
+
+    logoutClick(e) {
+        e.preventDefault();
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("roles");
+        window.isLoggedIn = false;
+        window.open("/", "_self")
+    }
+
+    addNewClick(e) {
+        e.preventDefault();
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("roles");
+        window.isLoggedIn = false;
+        window.open("http://maxmaster.azurewebsites.net", "_self")
+    }
+
+    componentDidMount() {
+        var mainThis = this;
+        $("#sideMenubarCollapse").on("click", function () {
+            mainThis.setState({ sidebarOpen: !mainThis.state.sidebarOpen }, () => {
+                if (mainThis.state.sidebarOpen) {
+                    $(".main-sidebar").css({ left: '0px' })
+                } else {
+                    $(".main-sidebar").css({ left: '-230px' })
+                }
+            });
+            $("#sidemenu").toggleClass("active");
+        });
+    }
+
+    render() {
+        var roles = sessionStorage.getItem("roles");
+        return (
+            <div>
+                {
+                    window.isLoggedIn ?
+                        <div id="sidemenu">
+                            <div className="main-header">
+                                <span id="sideMenubarCollapse" className="sidebar-toggle" data-toggle="push-menu" data-target="fullMenu" role="button"  >
+                                    <i className="fa fa-bars f20"></i>
+                                </span>
+                                <nav className="navbar navbar-static-top">
+                                    <div className="navbar-custom-menu" id="fullMenu">
+                                        <ul className="nav navbar-nav">
+                                            <li className="dropdown pointer">
+                                                <a className="navbar-menu-item dropdown-toggle" style={{ fontWeight: 'bold' }} data-toggle="dropdown">Hii  {sessionStorage.getItem('displayName')}<span className="caret"></span></a>
+                                                <ul className="dropdown-menu">
+                                                    <li><a onClick={() => { this.props.history.push("/ChangePassword") }}>Change Password</a></li>
+                                                    <li><a onClick={this.logoutClick.bind(this)}>Logout</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div className="main-sidebar">
+                                <div className="sidebar">
+                                    <ul className="sidebar-menu" data-widget="tree">
+                                        {
+                                            sessionStorage.getItem("roles").indexOf("SuperAdmin") !== -1 ?
+                                                <li className="treeview">
+                                                    <a className="linkcursor">
+                                                        <i className="fa fa-bars"></i>
+                                                        <span> Reports</span>
+                                                        <span className="pull-right-container">
+                                                            <span className="label label-primary pull-right">5</span>
+                                                        </span>
+                                                    </a>
+                                                    <ul className="treeview-menu">
+                                                        <li><a className="linkcursor" onClick={() => this.props.history.push("/ActivityReport")} ><i className="fa fa-sticky-note-o"></i> Activity Report</a></li>
+                                                        <li><a className="linkcursor" onClick={() => { this.props.history.push("/LogReport") }} > <i className="fa fa-sticky-note-o"></i> Activities Log Report</a></li>
+                                                        <li><a className="linkcursor" onClick={() => { this.props.history.push("/AttendanceReport") }}>  <i className="fa fa-sticky-note-o"></i> Attendance Report </a></li>
+                                                        <li><a className="linkcursor" onClick={() => { this.props.history.push("/DayReport") }}> <i className="fa fa-sticky-note-o"></i>  Day Report </a> </li>
+                                                        <li><a className="linkcursor" onClick={() => { this.props.history.push("/EmployeesLocationMap") }} ><i className="fa fa-sticky-note-o"></i>  Employee Location Report</a> </li>
+                                                        <li><a className="linkcursor" onClick={() => { this.props.history.push("/Notification") }}> <i className="fa fa-sticky-note-o"></i> Send Notification</a></li>
+                                                    </ul>
+                                                </li>
+                                                :
+                                                ""
+                                        }
+                                        {
+                                            sessionStorage.getItem("roles").indexOf("SuperAdmin") !== -1 ?
+                                                <li>
+                                                    <a className="linkcursor" onClick={() => { this.props.history.push("/Dashboard") }}  >
+                                                        <i className="fa fa-bars"></i> <span>Dashboard</span>
+                                                    </a>
+                                                </li>
+                                                :
+                                                ""
+                                        }
+                                        {
+                                            sessionStorage.getItem("roles").indexOf("SuperAdmin") !== -1 ?
+                                                <li>
+                                                    <a className="linkcursor" onClick={() => { this.props.history.push("/MIMICUser") }}  >
+                                                        <i className="fa fa-user"></i> <span> MIMIC User </span>
+                                                    </a>
+                                                </li>
+                                                :
+                                                ""
+                                        }
+
+                                        <li className="treeview">
+                                            <a className="linkcursor" >
+                                                <i className="fa fa-tasks" aria-hidden="true"></i>
+                                                <span> My Dashboard</span>
+                                                <span className="pull-right-container">
+                                                    <i className="fa fa-angle-left pull-right"></i>
+                                                </span>
+                                            </a>
+                                            <ul className="treeview-menu">
+                                                <li><a className="linkcursor" onClick={() => {
+                                                    this.props.history.push("/TaskDashboard")
+                                                    window.location.reload();
+                                                }}><i className="fa fa-bars"></i> Tasks Dashboard</a></li>
+
+                                                {/* <li><a className="linkcursor" onClick={() => { 
+                                                    this.props.history.push("/ToDos")
+                                                }}>
+                                                    <i className="fa fa-bars"></i>  ToDos </a>  </li>
+
+                                                <li><a className="linkcursor" onClick={() => { 
+                                                    this.props.history.push("/Others")
+                                                }}>
+                                                    <i className="fa fa-bars"></i>  Others </a>  </li> */}
+
+                                                <li><a className="linkcursor" onClick={() => {
+                                                    this.props.history.push("/MyReport")
+                                                }}>
+                                                    <i className="fa fa-sticky-note-o"></i>  My Report </a>  </li>
+                                            </ul>
+                                        </li>
+
+                                        <li>
+                                            <a className="linkcursor" onClick={() => { this.props.history.push("/Task") }} >
+                                                <i className="fa fa-plus"></i> <span> Task</span>
+                                                <span className="pull-right-container">
+                                                    <small className="label pull-right bg-green">new</small>
+                                                </span>
+                                            </a>
+                                        </li>
+
+                                        <li className="treeview">
+                                            <a className="linkcursor" >
+                                                <i className="fa fa-tasks" aria-hidden="true"></i>
+                                                <span> Leads</span>
+                                                <span className="pull-right-container">
+                                                    <i className="fa fa-angle-left pull-right"></i>
+                                                </span>
+                                            </a>
+                                            <ul className="treeview-menu">
+                                                <li><a className="linkcursor" onClick={() => this.props.history.push("/Opportunity")}><i className="fa fa-user-plus"></i> <span> Lead</span>
+                                                    <span className="pull-right-container">
+                                                        <small className="label pull-right bg-green">new</small>
+                                                    </span>
+                                                </a></li>
+                                                <li><a className="linkcursor" onClick={() => { this.props.history.push("/LeadsList") }}><i className="fa fa-bars"></i> Leads List</a></li>
+                                            </ul>
+                                        </li>
+
+                                        <li style={{ cursor: 'pointer' }} >
+                                            <a className="linkcursor" onClick={this.logoutClick.bind(this)} >
+                                                <i className="fa fa-sign-out"></i> <span>Logout</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        :
+                        <div />
+                }
+                {this.props.children}
+            </div>
+        );
+    }
+}
+
+export default withRouter(App);
+
+
+
+
+
+// category
+
+   <div className="table-responsive">
+                    <table className="table table-hover table-bordered">
+                        <thead className="thead">
+                            <tr>
+                                <td className="tdName">Category </td>
+                                <td className="tdStatus tdOpen" >Open</td>
+                                <td className="tdStatus tdInProcess">InProcess</td>
+                                <td className="tdStatus tdPending">Pending</td>
+                                <td className="tdStatus"> Reopened</td>
+                                <td className="tdStatus tdResolved">Resolved </td>
+                                <td className="tdStatus tdClosed">Closed</td>
+                                <td className="tdTotal tdStatus">Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                this.state.CategoryReport.map((ele, i) => {
+                                    return (
+                                        <tr key={i}>
+                                            <td>{ele["Category"]}</td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdOpen">
+                                                            <td>{ele["CurWeekOpen"]}</td>
+                                                            <td>{ele["CurMonthOpen"]}</td>
+                                                            <td>{ele["StatusOpen"] - ele["CurMonthOpen"]}</td>
+                                                            <td>{ele["StatusOpen"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdInProcess">
+                                                            <td>{ele["CurWeekInprocess"]}</td>
+                                                            <td>{ele["CurMonthInProcess"]}</td>
+                                                            <td>{ele["InProcess"] - ele["CurMonthInProcess"]}</td>
+                                                            <td>{ele["InProcess"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdPending">
+                                                            <td>{ele["CurWeekPending"]}</td>
+                                                            <td>{ele["CurMonthPending"]}</td>
+                                                            <td>{ele["Pending"] - ele["CurMonthPending"]}</td>
+                                                            <td>{ele["Pending"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr >
+                                                            <td>{ele["CurWeekReopened"]}</td>
+                                                            <td>{ele["CurMonthReopened"]}</td>
+                                                            <td>{ele["Reopened"] - ele["CurMonthReopened"]}</td>
+                                                            <td>{ele["Reopened"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdReopened">
+                                                            <td>{ele["CurWeekResolved"]}</td>
+                                                            <td>{ele["CurMonthResolved"]}</td>
+                                                            <td>{ele["Resolved"] - ele["CurMonthResolved"]}</td>
+                                                            <td> {ele["Resolved"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdClosed">
+                                                            <td>{ele["CurWeekClosed"]}</td>
+                                                            <td>{ele["CurMonthClosed"]}</td>
+                                                            <td> {ele["Closed"] - ele["CurMonthClosed"]}</td>
+                                                            <td> {ele["Closed"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td > {ele["Total"]}</td>
+                                        </tr>
+                                    )
+                                })
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <div className="col-md-4">
+                        <table className="table table-bordered">
+                            <thead>
+                                <tr className="trtitle">
+                                    <th colSpan="5" className="trtitle"> Today's Attendance </th>
+                                </tr>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Login </th>
+                                    <th>Delay</th>
+                                    <th>Logout</th>
+                                    <th> Delay</th>
+                                </tr>
+                            </thead>
+                            <tbody >
+                                {
+                                    this.state.Attendance.map((ele, i) => {
+                                        return (
+                                            ele["ClockInTime"] != null ?
+                                                <tr className="pointer" onClick={() => { this.getLocationDetail(ele["EmployeeId"], ele["EmployeeName"], ele["ClockInTime"], ele["ClockInAddress"], ele["ClockOutTime"]) }}>
+                                                    <td>{ele["EmployeeName"]}</td>
+                                                    <td> {ele["ClockInTime"] != null ? moment(ele["ClockInTime"]).format("h : mm A") : ""} </td>
+                                                    <td></td>
+                                                    <td> {ele["ClockOutTime"] != null ? moment(ele["ClockOutTime"]).format("h : mm A") : ""}</td>
+                                                    <td></td>
+                                                </tr>
+                                                :
+                                                ""
+                                        )
+                                    })
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+
+//client
+ 
+  <div className="table-responsive" >
+                    <table className="table table-hover table-bordered">
+                        <thead className="thead">
+                            <tr>
+                                <td className="tdName">Client </td>
+                                <td className="tdStatus tdOpen">Open</td>
+                                <td className="tdStatus tdInProcess">InProcess</td>
+                                <td className="tdStatus tdPending">Pending</td>
+                                <td className="tdStatus "> Reopened</td>
+                                <td className="tdStatus tdResolved">Resolved </td>
+                                <td className="tdStatus tdClosed">Closed</td>
+                                <td className="tdTotal tdStatus">Total</td>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {
+                                this.state.Client.map((ele, i) => {
+                                    return (
+                                        <tr key={i}>
+                                            <td>{ele["ClientName"]}</td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdOpen">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'Open') }} >{ele["CurWeekOpen"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitiesOfMonth('', ele["ClientId"], 'Open') }} >{ele["CurMonthOpen"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'Open') }} >{ele["StatusOpen"] - ele["CurMonthOpen"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'Open') }} >{ele["StatusOpen"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdInProcess">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'InProcess') }}  >{ele["CurWeekInProcess"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitiesOfMonth('', ele["ClientId"], 'InProcess') }} >{ele["CurMonthInProcess"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'InProcess') }} >{ele["InProcess"] - ele["CurMonthInProcess"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'InProcess') }}>{ele["InProcess"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdPending">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'Pending') }} >{ele["CurWeekPending"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitiesOfMonth('', ele["ClientId"], 'Pending') }}>{ele["CurMonthPending"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'Pending') }}>{ele["Pending"] - ele["CurMonthPending"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'Pending') }}>{ele["Pending"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'Reopened') }} >{ele["CurWeekReopened"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfMonth('', ele["ClientId"], 'Reopened') }} >{ele["CurMonthReopened"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'Reopened') }} >{ele["Reopened"] - ele["CurMonthReopened"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'Reopened') }} >{ele["Reopened"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdResolved">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'Resolved') }} >{ele["CurWeekResolved"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfMonth('', ele["ClientId"], 'Resolved') }} >{ele["CurMonthResolved"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'Resolved') }} >{ele["Resolved"] - ele["CurMonthResolved"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'Resolved') }} >{ele["Resolved"]}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td className="status">
+                                                <table className="childTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>Week</th>
+                                                            <th>Month</th>
+                                                            <th>Others</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                        <tr className="tdClosed">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek('', ele["ClientId"], 'Closed') }} >{ele["CurWeekClosed"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfMonth('', ele["ClientId"], 'Closed') }}>{ele["CurMonthClosed"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities('', ele["ClientId"], 'Closed') }}>{ele["Closed"] - ele["CurWeekClosed"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities('', ele["ClientId"], 'Closed') }} > {ele["Closed"]}</td>
+                                                        </tr>
+                                                    </tbody>
+
+                                                </table>
+                                            </td>
+                                            <td > {ele["Total"]}</td>
+                                        </tr>
+                                    )
+                                })
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+
+// employee
+     <div className="table-responsive">
+                            <table className="table table-hover table-bordered">
+                                <thead >
+                                    <tr>
+                                        <th className="tdName">Employee </th>
+                                        <th className="tdStatus tdOpen" >
+                                            <tr colSpan="3"> Open</tr>
+                                            <tr  >
+                                                <th>Week</th>
+                                                <th>Month</th>
+                                                <th>Others</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </th>
+                                        <th className="tdStatus tdInProcess">InProcess</th>
+                                        <th className="tdStatus tdPending">Pending</th>
+                                        {/* <th className="tdStatus">Reopened</th> */}
+                                        <th className="tdStatus tdResolved">Resolved </th>
+                                        <th className="tdStatus tdClosed">Closed</th>
+                                        <th className="tdTotal">Total</th>
+                                        <th className="tdActivity"> Last Activity </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        this.state.Employees.map((ele, i) => {
+                                            return (
+                                                <tr key={i}>
+                                                    <td>{ele["Employee"]}</td>
+                                                    <td className="status">
+                                                        <tr className="tdOpen">
+                                                            <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], '', 'Open') }} >{ele["CurWeekOpen"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'Open') }} >{ele["CurMonthOpen"]}</td>
+                                                            <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'Open') }} > {ele["StatusOpen"] - ele["CurMonthOpen"]} </td>
+                                                            <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'Open') }}>{ele["StatusOpen"]}</td>
+                                                        </tr>
+                                                    </td>
+                                                    <td className="status">
+                                                        <table className="childTable">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Week</th>
+                                                                    <th>Month</th>
+                                                                    <th>Others </th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                                <tr className="tdInProcess">
+                                                                    <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], '', 'InProcess') }} > {ele["CurWeekInprocess"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'InProcess') }} > {ele["CurMonthInProcess"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'InProcess') }} > {ele["InProcess"] - ele["CurMonthInProcess"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'InProcess') }} > {ele["InProcess"]}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td className="status">
+                                                        <table className="childTable">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Week</th>
+                                                                    <th>Month</th>
+                                                                    <th>Others</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                                <tr className="tdPending">
+                                                                    <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], '', 'Pending') }} >{ele["CurWeekPending"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'Pending') }}>{ele["CurMonthPending"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'Pending') }}>{ele["Pending"] - ele["CurMonthPending"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'Pending') }} > {ele["Pending"]}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    {/* <td className="status">
+                                                        <table className="childTable">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Week</th>
+                                                                    <th>Month</th>
+                                                                    <th>Others</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], '', 'Reopened') }} >{ele["CurWeekReopened"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'Reopened') }}>{ele["CurMonthReopened"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'Reopened') }}>{ele["Reopened"] - ele["CurMonthReopened"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'Reopened') }} > {ele["Reopened"]}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td> */}
+                                                    <td className="status">
+                                                        <table className="childTable">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Week</th>
+                                                                    <th>Month</th>
+                                                                    <th>Others</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                                <tr className="tdResolved">
+                                                                    <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], '', 'Resolved') }} >{ele["CurWeekResolved"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'Resolved') }} >{ele["CurMonthResolved"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'Resolved') }} >{ele["Resolved"] - ele["CurMonthResolved"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'Resolved') }} >  {ele["Resolved"]}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td className="status">
+                                                        <table className="childTable">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Week</th>
+                                                                    <th>Month</th>
+                                                                    <th>Others</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                                <tr className="tdClosed">
+                                                                    <td className="pointer" onClick={() => { this.getActivitesOfWeek(ele["EmpId"], ele["Employee"], '', '', 'Closed') }} >{ele["CurWeekClosed"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getActivitiesOfMonth(ele["EmpId"], '', 'Closed') }} >{ele["CurMonthClosed"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getOtherActivities(ele["EmpId"], '', 'Closed') }} >{ele["Closed"] - ele["CurMonthClosed"]}</td>
+                                                                    <td className="pointer" onClick={() => { this.getTotalActivities(ele["EmpId"], '', 'Closed') }} > {ele["Closed"]}</td>
+                                                                </tr>
+                                                            </tbody>
+
+                                                        </table>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>{ele["Total"]}</td>
+                                                    <td className="tdBold" >
+                                                        {
+                                                            ele["LastActivityTime"] != null ?
+                                                                moment(ele["LastActivityTime"]).format("DD-MMM-YYYY h:mm a")
+                                                                :
+                                                                ""
+                                                        }
+                                                    </td>
+                                                    <td className="tdIcon">
+                                                        <i className="material-icons msgIcon tdIcon" onClick={() => { this.handleNotify(ele["EmpId"]) }}>&#xe0c9;</i>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+
+                                </tbody>
+
+                            </table>
+                        </div>
