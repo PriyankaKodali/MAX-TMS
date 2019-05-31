@@ -249,13 +249,12 @@ class TaskDashBoard extends Component {
     }
 
     handleSearchClick() {
-        var searchCriteria = this.state.SearchCriteria;
-
+        var searchCriteria = this.state.SearchCriteria; 
         var empId = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId");
         var client = this.state.Client != '' ? this.state.Client.value : '';
         var department = this.state.Department != null ? this.state.Department.value : '';
         var priority = this.state.Priority
-        var status = this.state.Status != '' ? this.state.Status.value : '';
+        var status = this.state.Status != '' ? this.state.Status : '';
         var taskFrom = this.state.TaskFrom != '' ? this.state.TaskFrom.value : '';
 
         searchCriteria.empId = empId;
@@ -287,10 +286,9 @@ class TaskDashBoard extends Component {
         })
     }
 
-    StatusChanged(val) {
-
-        if (val) {
-            this.setState({ Status: val.value, })
+    StatusChanged(val) { 
+        if (val) { 
+            this.setState({ Status: val.value  })
         }
         else {
             this.setState({ Status: '' })

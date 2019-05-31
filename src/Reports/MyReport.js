@@ -4,13 +4,12 @@ import Select from 'react-select';
 import { ApiUrl } from '../Config';
 import { MyAjax } from '../MyAjax';
 import { toast } from 'react-toastify';
-import { EditorState, convertToRaw, ContentState, convertFromHTML } from 'draft-js';
+import { EditorState, ContentState, convertFromHTML } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { showErrorsForInput } from '../Validation';
-import validate from 'validate.js';
-
+import validate from 'validate.js'; 
 
 var moment = require('moment');
 
@@ -347,8 +346,7 @@ class MyReport extends Component {
             }
             else {
                 return "";
-            }
-
+            } 
         }
         else {
             return "";
