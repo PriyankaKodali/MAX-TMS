@@ -9,7 +9,7 @@ import draftToHtml from 'draftjs-to-html';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { showErrorsForInput } from '../Validation';
-import validate from 'validate.js'; 
+import validate from 'validate.js';
 
 var moment = require('moment');
 
@@ -31,34 +31,34 @@ class MyReport extends Component {
             type: "get",
             success: (data) => { this.setState({ Clients: data["clients"] }) }
         })
-        if (this.props.location.state) { 
+        if (this.props.location.state) {
             var clientId = this.props.location.state["clientId"];
-            var status = this.props.location.state["status"]; 
-            var category = this.props.location.state["catId"];  
-        
-            this.setState({ 
+            var status = this.props.location.state["status"];
+            var category = this.props.location.state["catId"];
+
+            this.setState({
                 Client: clientId, FromDate: this.props.location.state["fromDate"],
                 ToDate: this.props.location.state["toDate"], Status: status, Category: category
             }, () => {
                 this.getMyReport();
             })
         }
-        else{
+        else {
             this.getMyReport();
         }
-       
+
         $.ajax({
             url: ApiUrl + "/api/MasterData/GetCategories?deptId=" + 9,
             type: "get",
             success: (data) => { this.setState({ Categories: data["categories"] }) }
-        }) 
+        })
     }
 
     getMyReport() {
         var url = ApiUrl + "/api/Reports/GetMyReport?fromDate=" + this.state.FromDate +
             "&toDate=" + this.state.ToDate + "&client=" + this.state.Client +
             "&status=" + this.state.Status + "&priority=" + this.state.Priority +
-            "&taskId=" + this.state.TaskId+ "&catId=" + this.state.Category
+            "&taskId=" + this.state.TaskId + "&catId=" + this.state.Category
 
         MyAjax(
             url,
@@ -119,7 +119,7 @@ class MyReport extends Component {
                                     <Select className="form-control" ref="client" placeholder="Select Status" name="Status" value={this.state.Status}
                                         options={[{ value: 'ALL', label: 'All' }, { value: 'Closed', label: 'Closed' }, { value: 'InProcess', label: 'InProcess' }, { value: 'Open', label: 'Open' },
                                         { value: 'Pending', label: 'Pending' }, { value: 'NotResolved', label: 'Not Resolved' },
-                                        { value: 'NotClosed', label: 'Not Closed' },
+                                        { value: 'NotClosed', label: 'Not Closed' }, { value: 'Hold', label: 'Hold' },
                                         { value: 'Resolved', label: 'Resolved' }, { value: 'Reopened', label: 'Reopened' }]}
                                         onChange={this.StatusChanged.bind(this)} />
                                 </div>
@@ -346,7 +346,7 @@ class MyReport extends Component {
             }
             else {
                 return "";
-            } 
+            }
         }
         else {
             return "";

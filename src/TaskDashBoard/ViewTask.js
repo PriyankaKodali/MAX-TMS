@@ -68,7 +68,7 @@ class ViewTask extends Component {
             (data) => {
                 this.setState({
                     Task: data["taskDetail"], TaskLog: data["taskDetail"]["TaskLog"],
-                    IsDataAvailable: true,Points:data["taskDetail"]["Points"]
+                    IsDataAvailable: true, Points: data["taskDetail"]["Points"]
                 })
             },
             (error) => toast(error.responseText, { type: toast.TYPE.ERROR })
@@ -128,6 +128,7 @@ class ViewTask extends Component {
                                     this.setState({
                                         Statuses: [{ value: "Assign", label: "Assign" },
                                         { value: "Pending", label: "Pending" },
+                                        { value: "Hold", label: "Hold" },
                                         { value: "Resolved", label: "Resolved" }]
                                     })
                                 }
@@ -137,7 +138,8 @@ class ViewTask extends Component {
                                     this.setState({
                                         Statuses: [{ value: "Assign", label: "Assign" },
                                         { value: "InProcess", label: "InProcess/Acknowledgement" },
-                                        { value: "Pending", label: "Pending" }]
+                                        { value: "Pending", label: "Pending" },
+                                        { value: "Hold", label: "Hold" },]
                                     })
                                 }
 
@@ -240,7 +242,7 @@ class ViewTask extends Component {
                                 </table>
                             </div>
 
-                            <div className="col-md-6 col-xs-12" style={{marginBottom: '1%'}}>
+                            <div className="col-md-6 col-xs-12" style={{ marginBottom: '1%' }}>
                                 <table className="table table-condensed table-bordered headertable" >
                                     <tbody>
                                         <tr>
@@ -554,6 +556,25 @@ class ViewTask extends Component {
                                                                         : <div />
                                                                 }
 
+                                                                {
+                                                                    this.state.ActionType.value == "Hold" ?
+                                                                        <div>
+                                                                            <div className="col-md-3">
+                                                                                <label>Remind on</label>
+                                                                                <div className="form-group">
+                                                                                    <div className="input-group">
+                                                                                        <span className="input-group-addon">
+                                                                                            <span className="glyphicon glyphicon-calendar"></span>
+                                                                                        </span>
+                                                                                        <input className="form-control" style={{ lineHeight: '19px' }} type="date" name="remindOn" ref="remindDate" autoComplete="off" />
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        :
+                                                                        <div />
+                                                                }
+
                                                             </div>
                                                             : <div />
                                                     }
@@ -826,7 +847,7 @@ class ViewTask extends Component {
                     this.setState({ RowNum: this.state.RowNum, TaskId: this.state.TaskId }, () => {
                         this.GetTaskInfo();
                     })
-                } 
+                }
             }
         })
     }
@@ -844,19 +865,19 @@ class ViewTask extends Component {
             return;
         }
 
-        var data = new FormData(); 
+        var data = new FormData();
         data.append("taskId", this.state.TaskId);
         data.append("actionType", this.state.ActionType.value);
         data.append("description", this.state.DescriptionHtml);
         data.append("OrgId", sessionStorage.getItem("OrgId"));
 
-        if( this.state.Points){
+        if (this.state.Points) {
             data.append("points", this.state.Points);
         }
-        else{
-            data.append("points",  0); 
+        else {
+            data.append("points", 0);
         }
-        
+
         if (this.state.ActionType.value === "Assign") {
             //  data.append("assignee", this.state.Assignee.value);
             data.append("hoursWorked", this.refs.hoursWorked.value);
@@ -879,6 +900,10 @@ class ViewTask extends Component {
             if (this.state.Task["Quantity"] != null) {
                 data.append("quantityWorked", this.refs.quantityWorked.value);
             }
+        }
+
+        if (this.state.ActionType.value == "Hold") {
+            data.append("remindDate", this.refs.remindDate.value);
         }
 
         var files = $("#input-id").fileinput("getFileStack");
@@ -904,11 +929,6 @@ class ViewTask extends Component {
                     this.state.LoginUser != sessionStorage.getItem("EmpId") ?
                         this.props.history.push("/TaskDashBoard/" + this.state.LoginUser) :
                         this.props.history.push("/TaskDashBoard");
-
-                    // this.state.LoginUser != sessionStorage.getItem("EmpId") ?
-                    //     this.props.history.push("/" + screen + this.state.LoginUser) :
-                    //     this.props.history.push("/" + screen);
-
                     return true;
                 },
                 (error) => {
@@ -977,6 +997,30 @@ class ViewTask extends Component {
         }
         else {
             showErrorsForInput(this.refs.action.wrapper, []);
+        }
+
+        if (this.state.ActionType !== undefined && this.state.ActionType.value == "Hold") {
+            if (validate.single(this.refs.remindDate.value, { presence: true }) !== undefined) {
+                success = false;
+                showErrorsForInput(this.refs.remindDate, ["Select date of remainder "]);
+                if (isSubmit) {
+                    this.refs.remindDate.focus();
+                    isSubmit = false;
+                }
+            }
+            else {
+                if (moment(this.refs.remindDate.value).format("YYYY-MM-DD") <= moment().format("YYYY-MM-DD")) {
+                    success = false;
+                    showErrorsForInput(this.refs.remindDate, ["Reminder should be greater than current day"]);
+                    if (isSubmit) {
+                        this.refs.remindDate.focus();
+                        isSubmit = false;
+                    }
+                }
+                else {
+                    showErrorsForInput(this.refs.remindDate, "");
+                }
+            }
         }
 
         if (this.state.ActionType != undefined && this.state.ActionType.value != "Reopen" && this.state.ActionType.value != "AcceptToClose") {

@@ -185,7 +185,7 @@ class ActivityReport extends Component {
                                         <Select className="form-control" ref="client" placeholder="Select Status" name="Status" value={this.state.Status}
                                             options={[{ value: 'ALL', label: 'All' }, { value: 'Closed', label: 'Closed' }, { value: 'Open', label: 'Open' },
                                             { value: 'InProcess', label: 'InProcess' }, { value: 'Pending', label: 'Pending' }, { value: 'NotResolved', label: 'Not Resolved' },
-                                            { value: 'NotClosed', label: 'Not Closed' },
+                                            { value: 'NotClosed', label: 'Not Closed' }, { value: 'Hold', label: 'Hold' },
                                             { value: 'Resolved', label: 'Resolved' }, { value: 'Reopened', label: 'Reopened' }]}
                                             onChange={this.StatusChanged.bind(this)} />
                                     </div>

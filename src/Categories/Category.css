@@ -1,10 +1,9 @@
 .shadowBox{
     border: 1px solid grey;
     box-shadow: 1px 1px 2px 0px grey;
-    padding: 10px;
-    margin-top: 4%;
+    padding: 10px; 
     border-radius: 4px; 
-    margin: 5%;
+    margin: 1%;
   }
 
   .removeBtn{
@@ -16,4 +15,8 @@
   .subheading{
     font-weight: bold;
     padding-left: 30px;
+  }
+
+  .btnBack{
+    margin-top: 2%;
   }

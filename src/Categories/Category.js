@@ -29,55 +29,65 @@ class Category extends Component {
         return (
             <div className="container">
                 <div className="col-xs-12" >
-                    <div className="col-md-6 shadowBox">
-                        <form onSubmit={this.handleSubmit.bind(this)}>
-                            <div className="col-xs-12">
-                                <div className="col-md-6">
-                                    <div className="form-group">
-                                        <label>Department</label>
-                                        <Select className="form-control" name="department" ref="department" placeholder="Select Department" value={this.state.Department} options={this.state.Departments} onChange={this.DeptChanged.bind(this)} />
+                    <div className="col-md-2"></div>
+                    <div className="col-md-6">
+                        <div className="col-md-3" style={{ float: 'right', width: '21%' }}>
+                            <button className="btn btn-primary btnBack" value="back" name="back" onClick={()=>{this.props.history.push('/Departments')}}>
+                                <span>Back To List</span>
+                                {/* <span style={{ paddingLeft: '6px' }} className="glyphicon glyphicon-arrow-left"></span> */}
+                            </button>
+                        </div>
+                        <div className="col-md-12 shadowBox">
+                            <form onSubmit={this.handleSubmit.bind(this)}>
+                                <div className="col-xs-12">
+                                    <div className="col-md-6">
+                                        <div className="form-group">
+                                            <label>Department</label>
+                                            <Select className="form-control" name="department" ref="department" placeholder="Select Department" value={this.state.Department} options={this.state.Departments} onChange={this.DeptChanged.bind(this)} />
+                                        </div>
+
                                     </div>
+                                    <div className="col-md-6">
+                                        <div className="form-group">
+                                            <label>Category Name</label>
+                                            <input className="form-control" name="category" placeholde="Category" type="text" ref="category" autoComplete="off" onBlur={this.CheckIfCategoryExists.bind(this)} />
+                                        </div>
 
-                                </div>
-                                <div className="col-md-6">
-                                    <div className="form-group">
-                                        <label>Category Name</label>
-                                        <input className="form-control" name="category" placeholde="Category" type="text" ref="category" autoComplete="off" onBlur={this.CheckIfCategoryExists.bind(this)} />
                                     </div>
-
                                 </div>
-                            </div>
-                            <div className="col-xs-12 subheading"  >
-                                <a style={{ cursor: 'pointer' }} className="" onClick={this.addSubCat.bind(this)}>  Add SubCategory </a>
-                            </div>
+                                <div className="col-xs-12 subheading"  >
+                                    <a style={{ cursor: 'pointer' }} className="" onClick={this.addSubCat.bind(this)}>  Add SubCategory </a>
+                                </div>
 
-                            <div className="col-xs-12" key={this.state.SubCategories}>
-                                {
-                                    this.state.SubCategories.map((ele, i) => {
-                                        return (
-                                            <div className="col-xs-12" key={i}>
-                                                <div className="col-md-6">
-                                                    <label>SubCategory Name</label>
-                                                    <input className="form-control" type="text" ref="subCategory" name="subCategory" autoComplete="off" defaultValue={ele["Name"]} onChange={this.subCatNameChanged.bind(this, i)} />
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <label>Points</label>
-                                                    <input className="form-control" type="number" ref="points" name="points" autoComplete="off" defaultValue={ele["Points"]} onChange={this.pointsChanged.bind(this, i)} />
-                                                </div>
-                                                <div className="col-md-2 removeBtn" >
-                                                    <i className="fa fa-trash pointer" onClick={this.removeItem.bind(this, i)} aria-hidden="true"></i>
-                                                </div>
+                                <div className="col-xs-12" key={this.state.SubCategories}>
+                                    {
+                                        this.state.SubCategories.map((ele, i) => {
+                                            return (
+                                                <div className="col-xs-12" key={i}>
+                                                    <div className="col-md-6">
+                                                        <label>SubCategory Name</label>
+                                                        <input className="form-control" type="text" ref="subCategory" name="subCategory" autoComplete="off" defaultValue={ele["Name"]} onChange={this.subCatNameChanged.bind(this, i)} />
+                                                    </div>
+                                                    <div className="col-md-4">
+                                                        <label>Points</label>
+                                                        <input className="form-control" type="number" ref="points" name="points" autoComplete="off" defaultValue={ele["Points"]} onChange={this.pointsChanged.bind(this, i)} />
+                                                    </div>
+                                                    <div className="col-md-2 removeBtn" >
+                                                        <i className="fa fa-trash pointer" onClick={this.removeItem.bind(this, i)} aria-hidden="true"></i>
+                                                    </div>
 
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-                            <div className="col-xs-12 mTop1 tcenter" >
-                                <button className="btn btn-primary" type="submit" name="submit" value="submit" >Save</button>
-                                <div className="loader"></div>
-                            </div>
-                        </form>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+                                <div className="col-xs-12 mTop1 tcenter" >
+                                    <button className="btn btn-primary" type="submit" name="submit" value="submit" >Save</button>
+                                    <div className="loader"></div>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
 

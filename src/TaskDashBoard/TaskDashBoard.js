@@ -12,6 +12,7 @@ import TasksThroughMe from './TasksThroughMe';
 import CreatedByMe from './CreatedByMe';
 import ToDoPending from './ToDoPending';
 import ToDo from './ToDo';
+import ToDoInHold from './ToDoInHold';
 
 import { SearchCriteria } from '../Globals';
 
@@ -152,7 +153,9 @@ class TaskDashBoard extends Component {
                         <div className="form-group">
                             <Select className="form-control" name="TaskType" placeholder="Task Type" value={this.state.TaskType}
                                 options={[{ value: 'all', label: 'All' }, { value: 'tasksOnMe', label: 'Tasks On Me' }, { value: 'tasksByMe', label: 'Tasks By Me' }, { value: 'tasksThroughMe', label: 'Tasks Through Me' },
-                                { value: 'pendingTasksOnMe', label: 'Pending Tasks' }]}
+                                // { value: 'pendingTasksOnMe', label: 'Pending Tasks' }
+                                { value: 'ToDoInHold', label: 'ToDoInHold' }
+                                ]}
                                 onChange={this.taskTypeChanged.bind(this)}
                             />
                         </div>
@@ -168,7 +171,11 @@ class TaskDashBoard extends Component {
                     <div className="col-md-2 form-group">
                         <div className="form-group">
                             <Select className="form-control" name="Status" placeholder="Status" value={this.state.Status}
-                                options={[{ value: 'Open', label: 'Open' }, { value: 'Pending', label: 'Pending' }, { value: 'Reopened', label: 'Reopened' }]}
+                                options={[{ value: 'Open', label: 'Open' },
+                                { value: 'Pending', label: 'Pending' },
+                                { value: 'Hold', label: 'Hold' },
+                                { value: 'Reopened', label: 'Reopened' }
+                                ]}
                                 onChange={this.StatusChanged.bind(this)}
                             />
                         </div>
@@ -206,11 +213,20 @@ class TaskDashBoard extends Component {
                     }
                 </div>
 
-                <div className="col-xs-12" >
+                {/* <div className="col-xs-12" >
                     {
                         this.state.TaskType.value == "all" || this.state.TaskType.value === "pendingTasksOnMe" ?
                             <div>
                                 <ToDoPending SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
+                            </div>
+                            : <div />
+                    }
+                </div> */}
+                <div className="col-xs-12" >
+                    {
+                        this.state.TaskType.value == "all" || this.state.TaskType.value === "ToDoInHold" ?
+                            <div>
+                                <ToDoInHold SearchCriteria={this.state.SearchCriteria} history={this.props.history} location={this.props.location} match={this.props.match} />
                             </div>
                             : <div />
                     }
@@ -249,7 +265,7 @@ class TaskDashBoard extends Component {
     }
 
     handleSearchClick() {
-        var searchCriteria = this.state.SearchCriteria; 
+        var searchCriteria = this.state.SearchCriteria;
         var empId = this.props.location.state != null ? this.props.location.state["EmpId"] : sessionStorage.getItem("EmpId");
         var client = this.state.Client != '' ? this.state.Client.value : '';
         var department = this.state.Department != null ? this.state.Department.value : '';
@@ -286,9 +302,9 @@ class TaskDashBoard extends Component {
         })
     }
 
-    StatusChanged(val) { 
-        if (val) { 
-            this.setState({ Status: val.value  })
+    StatusChanged(val) {
+        if (val) {
+            this.setState({ Status: val.value })
         }
         else {
             this.setState({ Status: '' })

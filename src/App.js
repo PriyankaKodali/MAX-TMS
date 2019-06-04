@@ -150,7 +150,7 @@ class App extends Component {
                                         <li className="treeview">
                                             <a className="linkcursor" >
                                                 <i className="fa fa-tasks" aria-hidden="true"></i>
-                                                <span> My Dashboard</span>
+                                                <span> Tasks Dashboard</span>
                                                 <span className="pull-right-container">
                                                     <i className="fa fa-angle-left pull-right"></i>
                                                 </span>
@@ -160,7 +160,7 @@ class App extends Component {
                                                     <a className="linkcursor" onClick={() => {
                                                         this.props.history.push("/TaskDashboard")
                                                         window.location.reload();
-                                                    }}><i className="fa fa-bars"></i> <span> My Dashboard </span>
+                                                    }}><i className="fa fa-bars"></i> <span> Tasks Dashboard </span>
                                                     </a>
                                                 </li>
 

@@ -8,7 +8,6 @@ class Departments extends Component {
         super(props);
         this.state = {
             Departments: [], subCategories: [], Department: '', category: '', CategoryName: '',
-
         }
     }
     componentWillMount() {
@@ -25,9 +24,18 @@ class Departments extends Component {
         return (
             <div className="container" style={{ marginTop: '0.5%' }} key={this.state.Departments}>
                 <div className="col-xs-12">
-                    <h4><b> Department Wise Categories</b>  </h4> 
+                    <h4><b> Department Wise Categories</b>
+                        <div className="col-md-5" style={{ float: "right" }}>
+                            <div className="col-md-8">
+                                <input className="form-control" placeholder="Category to be searched" ref="catgerory" />
+                            </div>
+                            <button className="col-md-2 btn btn-primary" name="search" value="search" onClick={this.handleCatSearchClick.bind(this)} > search </button> <span></span>
+                            <button className="col-md-1 btn btn-primary glyphicon glyphicon-plus" title="Add Category" style={{ paddingLeft: '10px', float:'right' }} name="addCategory"  onClick={() => { this.props.history.push('./Category') }} >
+                            </button>
+                        </div>
+                    </h4>
                 </div>
-                <div className="col-xs-12">
+                <div className="col-xs-12" style={{ paddingTop: '2px' }}>
                     {
                         this.state.Departments.map((ele, i) => {
                             return (
@@ -35,7 +43,7 @@ class Departments extends Component {
                                     <div className="panel panel-default">
                                         <div className="panel-heading">
                                             <h6 className="panel-title panelHeading" style={{ paddingTop: '6px' }}>
-                                                <p data-toggle="collapse" data-parent="#accordion" href={"#collapse" + i}>
+                                                <p data-toggle="collapse" data-target={"#collapse" + i} >
                                                     {ele["Department"].toUpperCase()}
                                                 </p>
                                             </h6>
@@ -90,11 +98,41 @@ class Departments extends Component {
         )
     }
 
+    handleCatSearchClick() {
+        var category = this.refs.catgerory.value;
+        var departments = this.state.Departments;
+        var index = [];
+        var exists = departments.map((ele, i) => {
+            ele["Categories"].map((e, j) => {
+                if (e["CategoryName"].toUpperCase() == category.toUpperCase()) {
+                    index.push(i);
+                }
+            })
+        })
+        if (index.length === 0) {
+            for (var i = 0; i < departments.length; i++) {
+                $('#collapse' + i).collapse('hide');
+            }
+        }
+        else {
+            for (var j = 0; j < departments.length; j++) {
+                var exists = index.findIndex(i => i == j);
+                if (exists != -1) {
+                    $('#collapse' + index[exists]).collapse('show');
+                }
+                else {
+                    $('#collapse' + j).collapse('hide');
+                }
+            }
+        }
+    }
+
     getSubCategories(catId, department, subcategories, category) {
         this.setState({
             subCategories: subcategories, Department: department, category: catId, CategoryName: category
         }, () => { $("#subCategories").modal("show"); })
     }
+
 
     handleCloseClick() {
         window.location.reload();
