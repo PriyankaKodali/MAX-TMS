@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^3.4.1",
     "bootstrap-fileinput": "^4.4.7",
     "draft-js": "^0.10.5",
     "draftjs-to-html": "^0.8.3",
