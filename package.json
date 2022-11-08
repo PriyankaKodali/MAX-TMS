@@ -25,7 +25,7 @@
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
     "react-rte": "^0.16.1",
-    "react-scripts": "1.1.2",
+    "react-scripts": "5.0.1",
     "react-select": "^1.2.1",
     "react-time-picker": "^3.1.1",
     "react-toastify": "^3.4.3",
